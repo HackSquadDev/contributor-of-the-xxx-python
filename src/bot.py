@@ -21,7 +21,7 @@ class Bot:
         GET github data by making a simple request to GitHub's REST API.
         '''
 
-        got = requests.get(f"https://api.github.com/repos/{self.CONFIG['GITHUB_ORG_NAME']}/{self.CONFIG['GITHUB_REPO_NAME']}/contributors?q=contributions&order=desc")        
+        got = requests.get(f"https://api.github.com/repos/{self.CONFIG['GITHUB_ORG_NAME']}/{self.CONFIG['GITHUB_REPO_NAME']}/contributors?q=contributions&order=desc")
         data = json.loads(got.text)
 
         return data
