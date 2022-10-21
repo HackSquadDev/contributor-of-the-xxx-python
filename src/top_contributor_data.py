@@ -12,13 +12,17 @@ r = requests.get('https://api.github.com/repos/{}/{}/contributors?q=contribution
 
 # Serialize the data
 data = json.loads(r.text)
-print("Organization: {}".format(org_name))
+
+# print("Organization: {}".format(org_name))
 top_contributor = data[0]["login"]
-print("Top Contributor: {}".format(top_contributor))
+
+# print("Top Contributor: {}".format(top_contributor))
 top_contributor_profile = data[0]["html_url"]
-print("{}'s Profile: {}".format(top_contributor, top_contributor_profile))
+
+# print("{}'s Profile: {}".format(top_contributor, top_contributor_profile))
 top_contributor_contributions = data[0]["contributions"]
-print("No. of Contributions Done by {}: {}".format(top_contributor, top_contributor_contributions))
+
+# print("No. of Contributions Done by {}: {}".format(top_contributor, top_contributor_contributions))
 top_contributor_avatar = data[0]["avatar_url"]
 urllib.request.urlretrieve(top_contributor_avatar, "top_contributor_avatar.png")
 img = Image.open("top_contributor_avatar.png")
