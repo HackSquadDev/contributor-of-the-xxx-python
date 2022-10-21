@@ -1,6 +1,8 @@
 import json
 import requests
 import sys
+import urllib.request
+from PIL import Image
 
 org_name = input("Org name: ").strip()
 repo_name = input("Repo name: ").strip()
@@ -16,3 +18,5 @@ top_contributor_profile = data[0]["html_url"]
 print("{}'s Profile: {}".format(top_contributor, top_contributor_profile))
 top_contributor_contributions = data[0]["contributions"]
 print("No. of Contributions Done by {}: {}".format(top_contributor, top_contributor_contributions))
+top_contributor_avatar = data[0]["avatar_url"]
+urllib.request.urlretrieve(top_contributor_avatar, "top_contributor_avatar.png")
