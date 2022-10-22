@@ -1,7 +1,7 @@
 # Imports.
 import json
 import asyncio
-import requests
+import aiohttp
 import urllib.request
 from typing import Any
 
@@ -16,13 +16,13 @@ class Bot:
     def __init__(self) -> None:
         pass
 
-    def get_data(self) -> Any:
+    async def get_data(self) -> Any:
         '''
         GET github data by making a simple request to GitHub's REST API.
         '''
-
-        got = requests.get(f"https://api.github.com/repos/{self.CONFIG['GITHUB_ORG_NAME']}/{self.CONFIG['GITHUB_REPO_NAME']}/contributors?q=contributions&order=desc")
-        data = json.loads(got.text)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"https://api.github.com/repos/{self.CONFIG['GITHUB_ORG_NAME']}/{self.CONFIG['GITHUB_REPO_NAME']}/contributors?q=contributions&order=desc") as response:
+                data = await response.json()
 
         return data
 
@@ -31,8 +31,8 @@ class Bot:
         A simple decorator to return data retrieved from GitHub's REST API.
         '''
 
-        def wrapper(self):
-            data = self.get_data()
+        async def wrapper(self):
+            data = await self.get_data()
             return func(self, data)
 
         return wrapper
