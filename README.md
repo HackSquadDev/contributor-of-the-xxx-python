@@ -1,8 +1,6 @@
 # COTO (Contributor of The Organization) Bot
 
-[![Lint](https://github.com/HackSquadDev/contributor-of-the-xxx-python/actions/workflows/linting.yml/badge.svg)](https://github.com/HackSquadDev/contributor-of-the-xxx-python/actions/workflows/linting.yml)
-
-<br>
+[![Lint](https://github.com/HackSquadDev/contributor-of-the-xxx-python/actions/workflows/linting.yml/badge.svg)](https://github.com/HackSquadDev/contributor-of-the-xxx-python/actions/workflows/linting.yml)``
 
 ## Setup
 
