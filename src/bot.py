@@ -1,5 +1,4 @@
 # Imports.
-import json
 import asyncio
 import aiohttp
 import urllib.request
