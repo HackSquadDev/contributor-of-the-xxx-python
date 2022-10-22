@@ -48,10 +48,9 @@ class Bot:
         '''
 
         # Retrieving the user's avatar and saving it.
-        top_contributor_avatar = data[0]['avatar_url']
-        avatar = top_contributor_avatar
-        urllib.request.urlretrieve(avatar, 'top_contributor_avatar.png')
-        img = Image.open('top_contributor_avatar.png')
+        avatar = data[0]['avatar_url']
+        urllib.request.urlretrieve(avatar, 'avatar.png')
+        img = Image.open('avatar.png')
         img.show()
 
     def run(self) -> None:
