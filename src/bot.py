@@ -60,7 +60,7 @@ class Bot:
 
         async def every(seconds: float):
             while True:
-                self.show_top_avatar()
+                await self.show_top_avatar()
                 await asyncio.sleep(seconds)
 
         loop = asyncio.get_event_loop()
