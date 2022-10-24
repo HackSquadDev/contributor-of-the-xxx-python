@@ -1,6 +1,6 @@
 # Imports.
-import io
 import requests
+from io import BytesIO
 from typing import Dict
 
 from PIL import Image
@@ -37,10 +37,7 @@ class Contributor:
     def __str__(self) -> str:
         return f'Top contributor of {self.org}: {self.login} | {self.html_url}'
 
-    def generate_avatar(
-        self,
-        file_name: str | None = None,
-    ) -> Image:
+    def generate_avatar(self) -> Image:
         '''
         Generates the avatar image of the contributor in a seeable format.
 
@@ -52,7 +49,7 @@ class Contributor:
         '''
 
         response = requests.get(self.avatar_url)
-        image_bytes = io.BytesIO(response.content)
+        image_bytes = BytesIO(response.content)
 
         image = Image.open(image_bytes)
         return image
