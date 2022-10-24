@@ -5,7 +5,7 @@ from typing import Any
 
 from dotenv import dotenv_values
 
-from models import Contributor
+from models import Contributor, Organization
 
 
 # Bot class.
@@ -32,6 +32,8 @@ class Bot:
             async with session.get(api) as response:
                 data = await response.json()
                 repos = [repo['name'] for repo in data]
+                org = data[0]['owner']['login']
+                org_avatar = data[0]['owner']['avatar_url']
 
             for repo in repos:
                 api = f'https://api.github.com/repos/{org}/{repo}/pulls' + \
@@ -50,9 +52,9 @@ class Bot:
                             contributors[handle]['details'] = pull['user']
                             contributors[handle]['score'] = \
                                 contributors[handle]['score'] + 1 if handle in contributors else 1
-
+        org = Organization(org, org_avatar)
         contributors = sorted(contributors.items(), key=lambda x: x[1]['score'], reverse=True)
-        return Contributor(contributors[0][1]['details'])
+        return Contributor(details=contributors[0][1]['details'], org=org)
 
     def get_contributor_before_run(func) -> Any:
         '''

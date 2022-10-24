@@ -4,6 +4,8 @@ from typing import Dict
 
 from PIL import Image
 
+from models.organization import Organization
+
 
 # Class for top contributors.
 class Contributor:
@@ -11,7 +13,7 @@ class Contributor:
     Represents the top contributor of a GitHub Organization.
     '''
 
-    def __init__(self, details: Dict[str, str]) -> None:
+    def __init__(self, details: Dict[str, str], org: Organization) -> None:
         self.login = details['login']
         self.id = details['id']
         self.node_id = details['node_id']
