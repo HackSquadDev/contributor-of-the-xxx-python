@@ -31,6 +31,7 @@ class Contributor:
         self.received_events_url = details['received_events_url']
         self.type = details['type']
         self.site_admin = details['site_admin']
+        self.org = org
 
     def __str__(self) -> str:
         return f'{self.login}: ID {self.id} | {self.html_url}'
