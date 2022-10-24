@@ -22,7 +22,7 @@ $ nano .env
 
 ```bash
 # setting up virtual environment using venv
-$ python -m venv ven
+$ python -m venv venv
 $ source venv/bin/activate
 
 # install dependencies using pip
