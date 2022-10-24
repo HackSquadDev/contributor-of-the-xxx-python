@@ -5,6 +5,8 @@ from typing import Any
 
 from dotenv import dotenv_values
 
+from models import Contributor
+
 
 # Bot class.
 class Bot:
@@ -37,6 +39,7 @@ class Bot:
 
                 async with session.get(api) as response:
                     data = await response.json()
+
                     for pull in data:
                         if pull['merged_at'] is not None:
                             handle = pull['user']['login']
@@ -49,11 +52,11 @@ class Bot:
                                 contributors[handle]['score'] + 1 if handle in contributors else 1
 
         contributors = sorted(contributors.items(), key=lambda x: x[1]['score'], reverse=True)
-        return contributors[0][1]['details']
+        return Contributor(contributors[0][1]['details'])
 
-    def get_data_before_run(func) -> Any:
+    def get_contributor_before_run(func) -> Any:
         '''
-        A simple decorator to return data retrieved from GitHub's REST API.
+        A simple decorator to return top contributor data retrieved from GitHub's REST API.
         '''
 
         async def wrapper(self):
@@ -62,13 +65,14 @@ class Bot:
 
         return wrapper
 
-    @get_data_before_run
-    def show_data(self, contributor) -> None:
+    @get_contributor_before_run
+    def show_avatar(self, contributor: Contributor) -> None:
         '''
-        Prints contributor data. This is a test funtion for future implementations.
+        Shows the avatar of the top contributor.
         '''
 
-        print(contributor)
+        image = contributor.generate_avatar()
+        image.show()
 
     def run(self) -> None:
         '''
@@ -77,7 +81,7 @@ class Bot:
 
         async def every(seconds: float):
             while True:
-                await self.show_data()
+                await self.show_avatar()
                 await asyncio.sleep(seconds)
 
         loop = asyncio.get_event_loop()
