@@ -4,7 +4,7 @@ from typing import Dict
 
 from PIL import Image
 
-from models.organization import Organization
+from .organization import Organization
 
 
 # Class for top contributors.
@@ -13,7 +13,7 @@ class Contributor:
     Represents the top contributor of a GitHub Organization.
     '''
 
-    def __init__(self, details: Dict[str, str], org: Organization) -> None:
+    def __init__(self, details: Dict[str, str], organization: Organization) -> None:
         self.login = details['login']
         self.id = details['id']
         self.node_id = details['node_id']
@@ -31,10 +31,10 @@ class Contributor:
         self.received_events_url = details['received_events_url']
         self.type = details['type']
         self.site_admin = details['site_admin']
-        self.org = org
+        self.organization = organization
 
     def __str__(self) -> str:
-        return f'{self.login}: ID {self.id} | {self.html_url}'
+        return f'Top contributor of {self.org}: {self.login} | {self.html_url}'
 
     def generate_avatar(
         self,
