@@ -20,15 +20,37 @@ class Bot:
         '''
         GET github data by making a simple request to GitHub's REST API.
         '''
-        async with aiohttp.ClientSession() as session:
+
+        contributors = {}
+        headers = {
+            "Authorization": f"token {self.CONFIG['GITHUB_TOKEN']}"
+        }
+        async with aiohttp.ClientSession(headers=headers) as session:
             org = self.CONFIG['GITHUB_ORG_NAME']
-            repo = self.CONFIG['GITHUB_REPO_NAME']
-            api = "https://api.github.com/repos/{}/{}".format(org, repo) + \
-                "/contributors?q=contributions&order=desc"
+            api = "https://api.github.com/orgs/{}/repos".format(org)
+
             async with session.get(api) as response:
                 data = await response.json()
+                repos = [repo["name"] for repo in data]
 
-        return data
+            for repo in repos:
+                api = "https://api.github.com/repos/{}/{}/pulls".format(org, repo) + \
+                    "?state=closed&per_page=100&page=1"
+                async with session.get(api) as response:
+                    data = await response.json()
+                    for pull in data:
+                        if pull["merged_at"] is not None:
+                            handle = pull["user"]["login"]
+
+                            if handle not in contributors:
+                                contributors[handle] = {"score": 0}
+
+                            contributors[handle]["details"] = pull["user"]
+                            contributors[handle]["score"] = \
+                                contributors[handle]["score"] + 1 if handle in contributors else 1
+
+        contributors = sorted(contributors.items(), key=lambda x: x[1]["score"], reverse=True)
+        return contributors[0][1]["details"]
 
     def get_data_before_run(func) -> Any:
         '''
@@ -42,13 +64,13 @@ class Bot:
         return wrapper
 
     @get_data_before_run
-    def show_top_avatar(self, data) -> None:
+    def show_top_avatar(self, contributor) -> None:
         '''
         Shows the avatar of the top contributor using Pillow.
         '''
 
         # Retrieving the user's avatar and saving it.
-        avatar = data[0]['avatar_url']
+        avatar = contributor['avatar_url']
         urllib.request.urlretrieve(avatar, 'avatar.png')
         img = Image.open('avatar.png')
         img.show()
