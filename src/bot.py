@@ -66,17 +66,17 @@ class Bot:
 
         async def wrapper(self):
             data = await self.get_data()
-            return func(self, data)
+            return await func(self, data)
 
         return wrapper
 
     @get_contributor_before_run
-    def show_avatar(self, contributor: Contributor) -> None:
+    async def show_avatar(self, contributor: Contributor) -> None:
         '''
         Shows the avatar of the top contributor.
         '''
 
-        image = contributor.generate_avatar()
+        image = await contributor.generate_avatar()
         image.show()
 
     def run(self) -> None:
