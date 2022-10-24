@@ -1,11 +1,8 @@
 # Imports.
-# import json
 import asyncio
 import aiohttp
-import urllib.request
 from typing import Any
 
-from PIL import Image
 from dotenv import dotenv_values
 
 
@@ -80,7 +77,7 @@ class Bot:
 
         async def every(seconds: float):
             while True:
-                await self.show_top_avatar()
+                await self.show_data()
                 await asyncio.sleep(seconds)
 
         loop = asyncio.get_event_loop()
