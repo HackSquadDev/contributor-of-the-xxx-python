@@ -26,17 +26,20 @@ class Bot:
         }
 
         async with aiohttp.ClientSession(headers=headers) as session:
-            org = self.CONFIG['GITHUB_ORG_NAME']
-            api = f'https://api.github.com/orgs/{org}/repos'
+            org_name = self.CONFIG['GITHUB_ORG_NAME']
+            api = f'https://api.github.com/orgs/{org_name}/repos'
 
             async with session.get(api) as response:
                 data = await response.json()
                 repos = [repo['name'] for repo in data]
-                org = data[0]['owner']['login']
-                org_avatar = data[0]['owner']['avatar_url']
+
+                organization = Organization(
+                    login=data[0]['owner']['login'],
+                    avatar_url=data[0]['owner']['avatar_url']
+                )
 
             for repo in repos:
-                api = f'https://api.github.com/repos/{org}/{repo}/pulls' + \
+                api = f'https://api.github.com/repos/{org_name}/{repo}/pulls' + \
                     '?state=closed&per_page=100&page=1'
 
                 async with session.get(api) as response:
@@ -52,9 +55,9 @@ class Bot:
                             contributors[handle]['details'] = pull['user']
                             contributors[handle]['score'] = \
                                 contributors[handle]['score'] + 1 if handle in contributors else 1
-        org = Organization(org, org_avatar)
+
         contributors = sorted(contributors.items(), key=lambda x: x[1]['score'], reverse=True)
-        return Contributor(details=contributors[0][1]['details'], org=org)
+        return Contributor(details=contributors[0][1]['details'], organization=organization)
 
     def get_contributor_before_run(func) -> Any:
         '''
