@@ -1,5 +1,6 @@
 # Imports.
-import urllib.request
+import io
+import requests
 from typing import Dict
 
 from PIL import Image
@@ -50,10 +51,8 @@ class Contributor:
             An Image object.
         '''
 
-        if not file_name:
-            file_name = f'{self.id}.png'
+        response = requests.get(self.avatar_url)
+        image_bytes = io.BytesIO(response.content)
 
-        urllib.request.urlretrieve(self.avatar_url, file_name)
-
-        image = Image.open(file_name)
+        image = Image.open(image_bytes)
         return image
