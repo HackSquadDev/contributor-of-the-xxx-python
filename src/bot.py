@@ -1,12 +1,11 @@
 # Imports.
-# import json
 import asyncio
 import aiohttp
-import urllib.request
 from typing import Any
 
-from PIL import Image
 from dotenv import dotenv_values
+
+from models import Contributor
 
 
 # Bot class.
@@ -25,36 +24,39 @@ class Bot:
         headers = {
             "Authorization": f"token {self.CONFIG['GITHUB_TOKEN']}"
         }
+
         async with aiohttp.ClientSession(headers=headers) as session:
             org = self.CONFIG['GITHUB_ORG_NAME']
-            api = "https://api.github.com/orgs/{}/repos".format(org)
+            api = f'https://api.github.com/orgs/{org}/repos'
 
             async with session.get(api) as response:
                 data = await response.json()
-                repos = [repo["name"] for repo in data]
+                repos = [repo['name'] for repo in data]
 
             for repo in repos:
-                api = "https://api.github.com/repos/{}/{}/pulls".format(org, repo) + \
-                    "?state=closed&per_page=100&page=1"
+                api = f'https://api.github.com/repos/{org}/{repo}/pulls' + \
+                    '?state=closed&per_page=100&page=1'
+
                 async with session.get(api) as response:
                     data = await response.json()
+
                     for pull in data:
-                        if pull["merged_at"] is not None:
-                            handle = pull["user"]["login"]
+                        if pull['merged_at'] is not None:
+                            handle = pull['user']['login']
 
                             if handle not in contributors:
-                                contributors[handle] = {"score": 0}
+                                contributors[handle] = {'score': 0}
 
-                            contributors[handle]["details"] = pull["user"]
-                            contributors[handle]["score"] = \
-                                contributors[handle]["score"] + 1 if handle in contributors else 1
+                            contributors[handle]['details'] = pull['user']
+                            contributors[handle]['score'] = \
+                                contributors[handle]['score'] + 1 if handle in contributors else 1
 
-        contributors = sorted(contributors.items(), key=lambda x: x[1]["score"], reverse=True)
-        return contributors[0][1]["details"]
+        contributors = sorted(contributors.items(), key=lambda x: x[1]['score'], reverse=True)
+        return Contributor(contributors[0][1]['details'])
 
-    def get_data_before_run(func) -> Any:
+    def get_contributor_before_run(func) -> Any:
         '''
-        A simple decorator to return data retrieved from GitHub's REST API.
+        A simple decorator to return top contributor data retrieved from GitHub's REST API.
         '''
 
         async def wrapper(self):
@@ -63,17 +65,14 @@ class Bot:
 
         return wrapper
 
-    @get_data_before_run
-    def show_top_avatar(self, contributor) -> None:
+    @get_contributor_before_run
+    def show_avatar(self, contributor: Contributor) -> None:
         '''
-        Shows the avatar of the top contributor using Pillow.
+        Shows the avatar of the top contributor.
         '''
 
-        # Retrieving the user's avatar and saving it.
-        avatar = contributor['avatar_url']
-        urllib.request.urlretrieve(avatar, 'avatar.png')
-        img = Image.open('avatar.png')
-        img.show()
+        image = contributor.generate_avatar()
+        image.show()
 
     def run(self) -> None:
         '''
@@ -82,7 +81,7 @@ class Bot:
 
         async def every(seconds: float):
             while True:
-                await self.show_top_avatar()
+                await self.show_avatar()
                 await asyncio.sleep(seconds)
 
         loop = asyncio.get_event_loop()
