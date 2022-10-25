@@ -8,7 +8,6 @@ from dotenv import dotenv_values
 from models import Contributor, Organization
 
 
-# Bot class.
 class Bot:
     CONFIG = dotenv_values('.env')
 
@@ -77,6 +76,7 @@ class Bot:
         '''
 
         image = await contributor.generate_avatar()
+        await contributor.post_to_Discord(self.CONFIG['DISCORD_HOOK'])
         image.show()
 
     def run(self) -> None:
