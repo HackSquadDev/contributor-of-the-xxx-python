@@ -1,7 +1,8 @@
 # Imports.
-import urllib.request
+from io import BytesIO
 from typing import Dict
 
+import aiohttp
 from PIL import Image
 
 from .organization import Organization
@@ -36,10 +37,7 @@ class Contributor:
     def __str__(self) -> str:
         return f'Top contributor of {self.org}: {self.login} | {self.html_url}'
 
-    def generate_avatar(
-        self,
-        file_name: str | None = None,
-    ) -> Image:
+    async def generate_avatar(self) -> Image:
         '''
         Generates the avatar image of the contributor in a seeable format.
 
@@ -50,10 +48,9 @@ class Contributor:
             An Image object.
         '''
 
-        if not file_name:
-            file_name = f'{self.id}.png'
+        async with aiohttp.ClientSession() as session:
+            async with session.get(self.avatar_url) as response:
+                image_bytes = BytesIO(await response.read())
 
-        urllib.request.urlretrieve(self.avatar_url, file_name)
-
-        image = Image.open(file_name)
+        image = Image.open(image_bytes)
         return image
