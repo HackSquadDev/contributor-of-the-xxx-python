@@ -1,6 +1,7 @@
 # Imports.
 import asyncio
 import aiohttp
+from datetime import datetime
 from typing import Any
 
 from dotenv import dotenv_values
@@ -45,6 +46,9 @@ class Bot:
                     data = await response.json()
 
                     for pull in data:
+                        difference = datetime.utcnow()-datetime.fromisoformat(pull['created_at'][0:10])
+                        if difference.days > int(self.CONFIG['TIME_PERIOD_DAYS']):
+                            break
                         if pull["merged_at"] is not None:
                             handle = pull["user"]["login"]
 
