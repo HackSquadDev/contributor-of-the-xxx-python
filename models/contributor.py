@@ -11,35 +11,35 @@ from .organization import Organization
 
 # Class for top contributors.
 class Contributor:
-    '''
+    """
     Represents the top contributor of a GitHub Organization.
-    '''
+    """
 
     def __init__(self, details: Dict[str, str], organization: Organization) -> None:
-        self.login = details['login']
-        self.id = details['id']
-        self.node_id = details['node_id']
-        self.avatar_url = details['avatar_url']
-        self.url = details['url']
-        self.html_url = details['html_url']
-        self.followers_url = details['followers_url']
-        self.following_url = details['following_url']
-        self.gists_url = details['gists_url']
-        self.starred_url = details['starred_url']
-        self.subscriptions_url = details['subscriptions_url']
-        self.organizations_url = details['organizations_url']
-        self.repos_url = details['repos_url']
-        self.events_url = details['events_url']
-        self.received_events_url = details['received_events_url']
-        self.type = details['type']
-        self.site_admin = details['site_admin']
+        self.login = details["login"]
+        self.id = details["id"]
+        self.node_id = details["node_id"]
+        self.avatar_url = details["avatar_url"]
+        self.url = details["url"]
+        self.html_url = details["html_url"]
+        self.followers_url = details["followers_url"]
+        self.following_url = details["following_url"]
+        self.gists_url = details["gists_url"]
+        self.starred_url = details["starred_url"]
+        self.subscriptions_url = details["subscriptions_url"]
+        self.organizations_url = details["organizations_url"]
+        self.repos_url = details["repos_url"]
+        self.events_url = details["events_url"]
+        self.received_events_url = details["received_events_url"]
+        self.type = details["type"]
+        self.site_admin = details["site_admin"]
         self.organization = organization
 
     def __str__(self) -> str:
-        return f'Top contributor of {self.org}: {self.login} | {self.html_url}'
+        return f"Top contributor of {self.org}: {self.login} | {self.html_url}"
 
     async def generate_avatar(self) -> Image:
-        '''
+        """
         Generates the avatar image of the contributor in a seeable format.
 
         Parameters:
@@ -47,7 +47,7 @@ class Contributor:
 
         Returns:
             An Image object.
-        '''
+        """
 
         async with aiohttp.ClientSession() as session:
             async with session.get(self.avatar_url) as response:
@@ -57,9 +57,9 @@ class Contributor:
         return image
 
     async def post_to_Discord(self, DISCORD_HOOK) -> None:
-        '''
+        """
         Posts contributor result image to Discord.
-        '''
+        """
         webhook = DiscordWebhook(url=DISCORD_HOOK)
-        webhook.add_file(file=self.image_bytes.getbuffer(), filename='contributor.png')
+        webhook.add_file(file=self.image_bytes.getbuffer(), filename="contributor.png")
         webhook.execute()
