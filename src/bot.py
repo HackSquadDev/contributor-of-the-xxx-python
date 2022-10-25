@@ -77,6 +77,7 @@ class Bot:
 
         image = await contributor.generate_avatar()
         await contributor.post_to_Discord(self.CONFIG['DISCORD_HOOK'])
+        await contributor.post_to_twitter()
         image.show()
 
     def run(self) -> None:
