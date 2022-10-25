@@ -4,6 +4,7 @@ from typing import Dict
 
 import aiohttp
 from PIL import Image
+from discord_webhook import DiscordWebhook
 
 from .organization import Organization
 
@@ -50,7 +51,15 @@ class Contributor:
 
         async with aiohttp.ClientSession() as session:
             async with session.get(self.avatar_url) as response:
-                image_bytes = BytesIO(await response.read())
+                self.image_bytes = BytesIO(await response.read())
 
-        image = Image.open(image_bytes)
+        image = Image.open(self.image_bytes)
         return image
+
+    async def post_to_Discord(self, DISCORD_HOOK) -> None:
+        '''
+        Posts contributor result image to Discord.
+        '''
+        webhook = DiscordWebhook(url=DISCORD_HOOK)
+        webhook.add_file(file=self.image_bytes.getbuffer(), filename='contributor.png')
+        webhook.execute()
