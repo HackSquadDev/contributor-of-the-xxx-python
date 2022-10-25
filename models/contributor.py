@@ -6,6 +6,8 @@ import aiohttp
 from PIL import Image
 from discord_webhook import DiscordWebhook
 
+from src.utils.functions import post_tweet
+
 from .organization import Organization
 
 
@@ -63,3 +65,9 @@ class Contributor:
         webhook = DiscordWebhook(url=DISCORD_HOOK)
         webhook.add_file(file=self.image_bytes.getbuffer(), filename='contributor.png')
         webhook.execute()
+
+    async def post_to_twitter(self) -> None:
+        '''
+        Posts contributor result image to Twitter.
+        '''
+        post_tweet(self.login, self.image_bytes.getbuffer())
