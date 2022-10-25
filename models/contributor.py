@@ -6,6 +6,8 @@ import aiohttp
 from PIL import Image
 from discord_webhook import DiscordWebhook
 
+from src.utils.functions import post_tweet
+
 from .organization import Organization
 
 
@@ -15,24 +17,12 @@ class Contributor:
     Represents the top contributor of a GitHub Organization.
     """
 
-    def __init__(self, details: Dict[str, str], organization: Organization) -> None:
-        self.login = details["login"]
-        self.id = details["id"]
-        self.node_id = details["node_id"]
-        self.avatar_url = details["avatar_url"]
-        self.url = details["url"]
-        self.html_url = details["html_url"]
-        self.followers_url = details["followers_url"]
-        self.following_url = details["following_url"]
-        self.gists_url = details["gists_url"]
-        self.starred_url = details["starred_url"]
-        self.subscriptions_url = details["subscriptions_url"]
-        self.organizations_url = details["organizations_url"]
-        self.repos_url = details["repos_url"]
-        self.events_url = details["events_url"]
-        self.received_events_url = details["received_events_url"]
-        self.type = details["type"]
-        self.site_admin = details["site_admin"]
+    def __init__(self, data: Dict, organization: Organization,  score: int = 0,) -> None:
+        self.login = data['login']
+        self.avatar_url = data['avatar_url']
+        self.bio = data['bio']
+        self.twitter_username = data['twitter_username']
+        self.score = score
         self.organization = organization
 
     def __str__(self) -> str:
@@ -63,3 +53,9 @@ class Contributor:
         webhook = DiscordWebhook(url=DISCORD_HOOK)
         webhook.add_file(file=self.image_bytes.getbuffer(), filename="contributor.png")
         webhook.execute()
+
+    async def post_to_twitter(self) -> None:
+        '''
+        Posts contributor result image to Twitter.
+        '''
+        post_tweet(self.login + ": " + str(self.score), self.image_bytes.getbuffer())
