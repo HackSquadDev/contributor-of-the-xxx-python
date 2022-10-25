@@ -17,11 +17,16 @@ class Contributor:
     Represents the top contributor of a GitHub Organization.
     """
 
-    def __init__(self, data: Dict, organization: Organization,  score: int = 0,) -> None:
-        self.login = data['login']
-        self.avatar_url = data['avatar_url']
-        self.bio = data['bio']
-        self.twitter_username = data['twitter_username']
+    def __init__(
+        self,
+        data: Dict,
+        organization: Organization,
+        score: int = 0,
+    ) -> None:
+        self.login = data["login"]
+        self.avatar_url = data["avatar_url"]
+        self.bio = data["bio"]
+        self.twitter_username = data["twitter_username"]
         self.score = score
         self.organization = organization
 
@@ -55,7 +60,7 @@ class Contributor:
         webhook.execute()
 
     async def post_to_twitter(self) -> None:
-        '''
+        """
         Posts contributor result image to Twitter.
-        '''
+        """
         post_tweet(self.login + ": " + str(self.score), self.image_bytes.getbuffer())

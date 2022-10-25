@@ -14,4 +14,6 @@ def post_tweet(tweet_text, image):
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
     api = tweepy.API(auth)
-    api.update_status_with_media(status=tweet_text, file=image, filename='contributor.png')
+    api.update_status_with_media(
+        status=tweet_text, file=image, filename="contributor.png"
+    )

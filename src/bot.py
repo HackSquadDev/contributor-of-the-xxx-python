@@ -49,15 +49,22 @@ class Bot:
                             handle = pull["user"]["login"]
 
                             if handle not in contributors:
-                                api = f'https://api.github.com/users/{handle}'
+                                api = f"https://api.github.com/users/{handle}"
                                 async with session.get(api) as response:
                                     data = await response.json()
-                                contributors[handle] = Contributor(data, organization=organization)
+                                contributors[handle] = Contributor(
+                                    data, organization=organization
+                                )
 
-                            contributors[handle].score = \
-                                contributors[handle].score + 1 if handle in contributors else 1
+                            contributors[handle].score = (
+                                contributors[handle].score + 1
+                                if handle in contributors
+                                else 1
+                            )
 
-        contributors = sorted(contributors.items(), key=lambda x: x[1].score, reverse=True)
+        contributors = sorted(
+            contributors.items(), key=lambda x: x[1].score, reverse=True
+        )
         return contributors[0][1]
 
     def get_contributor_before_run(func) -> Any:
@@ -78,7 +85,7 @@ class Bot:
         """
 
         image = await contributor.generate_avatar()
-        await contributor.post_to_Discord(self.CONFIG['DISCORD_HOOK'])
+        await contributor.post_to_Discord(self.CONFIG["DISCORD_HOOK"])
         await contributor.post_to_twitter()
         image.show()
 
