@@ -1,7 +1,7 @@
 class Organization:
-    '''
+    """
     Represents a GitHub Organization.
-    '''
+    """
 
     def __init__(self, login: str, avatar_url: str) -> None:
         self.login = login
