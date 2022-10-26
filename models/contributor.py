@@ -3,9 +3,8 @@ from io import BytesIO
 from typing import Dict
 
 import aiohttp
-from PIL import Image
 from discord_webhook import DiscordWebhook
-
+from PIL import Image
 from src.utils.functions import post_tweet
 
 from .organization import Organization
@@ -51,7 +50,7 @@ class Contributor:
         image = Image.open(self.image_bytes)
         return image
 
-    async def post_to_Discord(self, DISCORD_HOOK) -> None:
+    async def post_to_discord(self, DISCORD_HOOK) -> None:
         """
         Posts contributor result image to Discord.
         """

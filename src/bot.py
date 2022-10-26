@@ -5,7 +5,6 @@ from typing import Any
 
 import aiohttp
 from dotenv import dotenv_values
-
 from models import Contributor, Organization
 
 
@@ -86,13 +85,13 @@ class Bot:
         return wrapper
 
     @get_contributor_before_run
-    async def show_avatar(self, contributor: Contributor) -> None:
+    async def run_tasks(self, contributor: Contributor) -> None:
         """
         Shows the avatar of the top contributor.
         """
 
         image = await contributor.generate_avatar()
-        await contributor.post_to_Discord(self.CONFIG["DISCORD_HOOK"])
+        await contributor.post_to_discord(self.CONFIG["DISCORD_HOOK"])
         await contributor.post_to_twitter()
         image.show()
 
@@ -103,7 +102,7 @@ class Bot:
 
         async def every(seconds: float):
             while True:
-                await self.show_avatar()
+                await self.run_tasks()
                 await asyncio.sleep(seconds)
 
         loop = asyncio.get_event_loop()
