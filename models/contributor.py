@@ -101,19 +101,21 @@ class Contributor:
         )
 
         draw.text(
-            xy=(255, 280),
+            xy=(200, 280),
             text=str(self.score),
             fill=(183, 183, 183),
             font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
-            direction="rtl",
+            align="center",
+            anchor="ma",
         )
 
         draw.text(
-            xy=(900, 280),
+            xy=(1000, 280),
             text=str(self.score),
             fill=(183, 183, 183),
             font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
-            direction="ltr",
+            align="center",
+            anchor="ma",
         )
 
         draw.text(
@@ -121,7 +123,6 @@ class Contributor:
             text=f"@{self.organization.login.lower()}",
             fill=(255, 255, 255),
             font=ImageFont.truetype("assets/fonts/JosefinSansT.ttf", 30),
-            direction="ltr",
         )
 
         overlay = Image.open("assets/overlay.png")
