@@ -78,7 +78,6 @@ class Contributor:
             fill=(255, 255, 255),
             font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 40),
             anchor="mm",
-            align="center",
         )
 
         if self.bio:
@@ -88,7 +87,6 @@ class Contributor:
                 fill=(255, 255, 255),
                 font=ImageFont.truetype("assets/fonts/JosefinSansEL.ttf", 30),
                 anchor="mm",
-                align="center",
             )
 
         draw.text(
@@ -97,7 +95,6 @@ class Contributor:
             fill=(255, 255, 255),
             font=ImageFont.truetype("assets/fonts/JosefinSansTI.ttf", 25),
             anchor="mm",
-            align="center",
         )
 
         draw.text(
@@ -105,7 +102,6 @@ class Contributor:
             text=str(self.score),
             fill=(183, 183, 183),
             font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
-            align="center",
             anchor="ma",
         )
 
@@ -114,7 +110,6 @@ class Contributor:
             text=str(self.score),
             fill=(183, 183, 183),
             font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
-            align="center",
             anchor="ma",
         )
 
