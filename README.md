@@ -28,7 +28,7 @@ $ docker-compose build
 $ docker-compose up
 ```
 
-- Manual: (requires **Python 3.10** or later, and [libraqm](https://github.com/HOST-Oman/libraqm) for image manipulation)
+- Manual: (requires **Python 3.10** or later)
 
 ```bash
 # setting up virtual environment using venv
