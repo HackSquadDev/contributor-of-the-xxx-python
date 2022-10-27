@@ -4,13 +4,12 @@ from datetime import datetime
 from typing import Any
 
 import aiohttp
-from dotenv import dotenv_values
 from models import Contributor, Organization
+
+from . import global_
 
 
 class Bot:
-    CONFIG = dotenv_values(".env")
-
     def __init__(self) -> None:
         pass
 
@@ -20,10 +19,10 @@ class Bot:
         """
 
         contributors = {}
-        headers = {"Authorization": f"token {self.CONFIG['GITHUB_TOKEN']}"}
+        headers = {"Authorization": f"token {global_.GITHUB['TOKEN']}"}
 
         async with aiohttp.ClientSession(headers=headers) as session:
-            org_name = self.CONFIG["GITHUB_ORG_NAME"]
+            org_name = global_.GITHUB["ORG_NAME"]
             api = f"https://api.github.com/orgs/{org_name}/repos"
 
             async with session.get(api) as response:
@@ -51,7 +50,7 @@ class Bot:
                                 pull["merged_at"][0:10]
                             )
 
-                            if difference.days > int(self.CONFIG["TIME_PERIOD_DAYS"]):
+                            if difference.days > int(global_.TIME_PERIOD_DAYS):
                                 break
 
                             if handle not in contributors:
@@ -90,8 +89,8 @@ class Bot:
         Shows the avatar of the top contributor.
         """
 
-        image = await contributor.generate_avatar()
-        await contributor.post_to_discord(self.CONFIG["DISCORD_HOOK"])
+        image = await contributor.generate_image()
+        await contributor.post_to_discord()
         await contributor.post_to_twitter()
         image.show()
 
@@ -106,7 +105,5 @@ class Bot:
                 await asyncio.sleep(seconds)
 
         loop = asyncio.get_event_loop()
-        loop.create_task(
-            every(seconds=3600 * 24 * int(self.CONFIG["TIME_PERIOD_DAYS"]))
-        )
+        loop.create_task(every(seconds=3600 * 24 * int(global_.TIME_PERIOD_DAYS)))
         loop.run_forever()
