@@ -30,6 +30,7 @@ class Contributor:
         self.twitter_username = data["twitter_username"]
         self.score = score
         self.organization = organization
+        self.image_bytes: bytes = None
 
     def __str__(self) -> str:
         return f"Top contributor of {self.org}: {self.login} | {self.html_url}"
