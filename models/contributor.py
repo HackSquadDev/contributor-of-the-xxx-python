@@ -23,13 +23,15 @@ class Contributor:
         self,
         data: Dict,
         organization: Organization,
-        score: int = 0,
+        pr_count: int = 0,
+        issue_count: int = 0,
     ) -> None:
         self.login = data["login"]
         self.avatar_url = data["avatar_url"]
         self.bio = data["bio"]
         self.twitter_username = data["twitter_username"]
-        self.score = score
+        self.pr_count = pr_count
+        self.issue_count = issue_count
         self.organization = organization
         self.image_bytes: bytes = None
 
@@ -99,7 +101,7 @@ class Contributor:
 
         draw.text(
             xy=(200, 280),
-            text=str(self.score),
+            text=str(self.pr_count),
             fill=(183, 183, 183),
             font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
             anchor="ma",
@@ -107,7 +109,7 @@ class Contributor:
 
         draw.text(
             xy=(1000, 280),
-            text=str(self.score),
+            text=str(self.pr_count),
             fill=(183, 183, 183),
             font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
             anchor="ma",
@@ -149,7 +151,7 @@ class Contributor:
         )
         api = tweepy.API(auth)
         api.update_status_with_media(
-            status=f"{self.login} has scored {self.score}!",
+            status=f"{self.login} has scored {self.pr_count}!",
             file=self.image_bytes,
             filename="contributor.png",
         )
