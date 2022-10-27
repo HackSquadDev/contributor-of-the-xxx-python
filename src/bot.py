@@ -66,14 +66,14 @@ class Bot:
                                         data, organization=organization
                                     )
 
-                                contributors[handle].score = (
-                                    contributors[handle].score + 1
+                                contributors[handle].pr_count = (
+                                    contributors[handle].pr_count + 1
                                     if handle in contributors
                                     else 1
                                 )
 
         contributors = sorted(
-            contributors.items(), key=lambda x: x[1].score, reverse=True
+            contributors.items(), key=lambda x: x[1].pr_count, reverse=True
         )
         return contributors[0][1]
 
