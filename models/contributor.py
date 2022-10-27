@@ -1,13 +1,13 @@
 # Imports.
+import datetime
 from io import BytesIO
-from typing import Dict
+from typing import Any, Dict
 
 import aiohttp
 import numpy as np
 import tweepy
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
-
 from src import global_
 
 from .organization import Organization
@@ -157,3 +157,48 @@ class Contributor:
             file=self.image_bytes,
             filename="contributor.png",
         )
+
+    async def get_issue_count(self) -> Any:
+        """
+        GET issue count by making a simple request to GitHub's REST API.
+        """
+
+        issue_count = 0
+        headers = {"Authorization": f"token {global_.GITHUB['TOKEN']}"}
+
+        async with aiohttp.ClientSession(headers=headers) as session:
+            org_name = global_.GITHUB["ORG_NAME"]
+            api = f"https://api.github.com/orgs/{org_name}/repos"
+
+            async with session.get(api) as response:
+                data = await response.json()
+                repos = [repo["name"] for repo in data]
+
+            for repo in repos:
+                for page in range(1, 100):
+                    api = (
+                        f"https://api.github.com/repos/{org_name}/{repo}/issues"
+                        + f"?state=closed&per_page=100&page={page}"
+                    )
+
+                    async with session.get(api) as response:
+                        data = await response.json()
+
+                        if not data:
+                            break
+
+                        for issue in data:
+                            if issue["merged_at"] is None:
+                                break
+
+                            difference = datetime.utcnow() - datetime.fromisoformat(
+                                issue["merged_at"][0:10]
+                            )
+
+                            if difference.days > int(global_.TIME_PERIOD_DAYS):
+                                break
+
+                            else:
+                                issue_count += 1
+
+        return issue_count
