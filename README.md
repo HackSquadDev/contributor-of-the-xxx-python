@@ -18,7 +18,17 @@ $ nano .env
 
 ### Initialize
 
-- Manual: (requires **Python 3.10** or later)
+- Docker: (easier, requires [Docker Engine](https://docker.com/) and [Docker Compose](https://docs.docker.com/compose/))
+
+```bash
+# building the image
+$ docker-compose build
+
+# running it
+$ docker-compose up
+```
+
+- Manual: (requires **Python 3.10** or later, and [libraqm](https://github.com/HOST-Oman/libraqm) for image manipulation)
 
 ```bash
 # setting up virtual environment using venv
@@ -32,12 +42,3 @@ $ pip install -r requirements.txt
 $ python main.py
 ```
 
-- Docker: (easier, requires [Docker Engine](https://docker.com/) and [Docker Compose](https://docs.docker.com/compose/))
-
-```bash
-# building the image
-$ docker-compose build
-
-# running it
-$ docker-compose up
-```
