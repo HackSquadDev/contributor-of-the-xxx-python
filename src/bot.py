@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Any
 
 import aiohttp
+
 from models import Contributor, Organization
 
 from . import global_
