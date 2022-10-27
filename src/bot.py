@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Any
 
 import aiohttp
-
 from models import Contributor, Organization
 
 from . import global_
@@ -36,37 +35,41 @@ class Bot:
                 )
 
             for repo in repos:
-                api = (
-                    f"https://api.github.com/repos/{org_name}/{repo}/pulls"
-                    + "?state=closed&per_page=100&page=1"
-                )
+                for page in range(1, 100):
+                    api = (
+                        f"https://api.github.com/repos/{org_name}/{repo}/pulls"
+                        + f"?state=closed&per_page=100&page={page}"
+                    )
 
-                async with session.get(api) as response:
-                    data = await response.json()
+                    async with session.get(api) as response:
+                        data = await response.json()
 
-                    for pull in data:
-                        if pull["merged_at"] is not None:
-                            handle = pull["user"]["login"]
-                            difference = datetime.utcnow() - datetime.fromisoformat(
-                                pull["merged_at"][0:10]
-                            )
+                        if len(data) == 0:
+                            break
 
-                            if difference.days > int(global_.TIME_PERIOD_DAYS):
-                                break
-
-                            if handle not in contributors:
-                                api = f"https://api.github.com/users/{handle}"
-                                async with session.get(api) as response:
-                                    data = await response.json()
-                                contributors[handle] = Contributor(
-                                    data, organization=organization
+                        for pull in data:
+                            if pull["merged_at"] is not None:
+                                handle = pull["user"]["login"]
+                                difference = datetime.utcnow() - datetime.fromisoformat(
+                                    pull["merged_at"][0:10]
                                 )
 
-                            contributors[handle].score = (
-                                contributors[handle].score + 1
-                                if handle in contributors
-                                else 1
-                            )
+                                if difference.days > int(global_.TIME_PERIOD_DAYS):
+                                    break
+
+                                if handle not in contributors:
+                                    api = f"https://api.github.com/users/{handle}"
+                                    async with session.get(api) as response:
+                                        data = await response.json()
+                                    contributors[handle] = Contributor(
+                                        data, organization=organization
+                                    )
+
+                                contributors[handle].score = (
+                                    contributors[handle].score + 1
+                                    if handle in contributors
+                                    else 1
+                                )
 
         contributors = sorted(
             contributors.items(), key=lambda x: x[1].score, reverse=True
