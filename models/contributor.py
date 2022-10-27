@@ -3,9 +3,12 @@ from io import BytesIO
 from typing import Dict
 
 import aiohttp
+import numpy as np
+import tweepy
 from discord_webhook import DiscordWebhook
-from PIL import Image
-from src.utils.functions import post_tweet
+from PIL import Image, ImageDraw, ImageFont
+
+from src import global_
 
 from .organization import Organization
 
@@ -28,32 +31,129 @@ class Contributor:
         self.twitter_username = data["twitter_username"]
         self.score = score
         self.organization = organization
+        self.image_bytes: bytes = None
 
     def __str__(self) -> str:
         return f"Top contributor of {self.org}: {self.login} | {self.html_url}"
 
-    async def generate_avatar(self) -> Image:
+    async def generate_image(self) -> Image:
         """
-        Generates the avatar image of the contributor in the form of a `PIL.Image` object.
+        Generates the banner image for the top contributor.
         """
+
+        image = Image.open("assets/background.png")
 
         async with aiohttp.ClientSession() as session:
             async with session.get(self.avatar_url) as response:
-                self.image_bytes = BytesIO(await response.read())
+                avatar_bytes = BytesIO(await response.read())
+                avatar = Image.open(avatar_bytes).resize((200, 200))
+                image.paste(avatar, (500, 216))
 
-        image = Image.open(self.image_bytes)
+            async with session.get(self.organization.avatar_url) as response2:
+                org_avatar_bytes = BytesIO(await response2.read())
+                org_avatar = Image.open(org_avatar_bytes).resize((80, 80))
+
+                height, width = org_avatar.size
+                lum_img = Image.new("L", [height, width], 0)
+
+                org_draw = ImageDraw.Draw(lum_img)
+                org_draw.pieslice([(0, 0), (height, width)], 0, 360, fill=255)
+                org_avatar_arr = np.array(org_avatar)
+                lum_img_arr = np.array(lum_img)
+
+                final_org_avatar = Image.fromarray(
+                    np.dstack((org_avatar_arr, lum_img_arr))
+                )
+
+                try:
+                    image.paste(final_org_avatar, (60, 28), mask=final_org_avatar)
+                except ValueError:
+                    image.paste(final_org_avatar, (60, 28))
+
+        draw = ImageDraw.Draw(image)
+
+        draw.text(
+            xy=((image.width / 2), 160),
+            text=self.login,
+            fill=(255, 255, 255),
+            font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 40),
+            anchor="mm",
+            align="center",
+        )
+
+        if self.bio:
+            draw.text(
+                xy=((image.width / 2), 500),
+                text=self.bio,
+                fill=(255, 255, 255),
+                font=ImageFont.truetype("assets/fonts/JosefinSansEL.ttf", 30),
+                anchor="mm",
+                align="center",
+            )
+
+        draw.text(
+            xy=((image.width / 2), 600),
+            text="Talk is cheap, show me the code.",
+            fill=(255, 255, 255),
+            font=ImageFont.truetype("assets/fonts/JosefinSansTI.ttf", 25),
+            anchor="mm",
+            align="center",
+        )
+
+        draw.text(
+            xy=(255, 280),
+            text=str(self.score),
+            fill=(183, 183, 183),
+            font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
+            direction="rtl",
+        )
+
+        draw.text(
+            xy=(900, 280),
+            text=str(self.score),
+            fill=(183, 183, 183),
+            font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
+            direction="ltr",
+        )
+
+        draw.text(
+            xy=(150, 50),
+            text=f"@{self.organization.login.lower()}",
+            fill=(255, 255, 255),
+            font=ImageFont.truetype("assets/fonts/JosefinSansT.ttf", 30),
+            direction="ltr",
+        )
+
+        overlay = Image.open("assets/overlay.png")
+        image.paste(overlay, mask=overlay)
+
+        buffer = BytesIO()
+        image.save(buffer, format="png")
+        self.image_bytes = buffer.getvalue()
+
         return image
 
-    async def post_to_discord(self, DISCORD_HOOK) -> None:
+    async def post_to_discord(self) -> None:
         """
         Posts contributor result image to Discord.
         """
-        webhook = DiscordWebhook(url=DISCORD_HOOK)
-        webhook.add_file(file=self.image_bytes.getbuffer(), filename="contributor.png")
+        webhook = DiscordWebhook(url=global_.DISCORD_HOOK)
+        webhook.add_file(file=self.image_bytes, filename="contributor.png")
         webhook.execute()
 
     async def post_to_twitter(self) -> None:
         """
         Posts contributor result image to Twitter.
         """
-        post_tweet(self.login + ": " + str(self.score), self.image_bytes.getbuffer())
+        auth = tweepy.OAuthHandler(
+            global_.TWITTER["CONSUMER_KEY"], global_.TWITTER["CONSUMER_SECRET"]
+        )
+        auth.set_access_token(
+            global_.TWITTER["ACCESS_TOKEN"], global_.TWITTER["ACCESS_TOKEN_SECRET"]
+        )
+        api = tweepy.API(auth)
+        api.update_status_with_media(
+            status=f"{self.login} has scored {self.score}!",
+            file=self.image_bytes,
+            filename="contributor.png",
+        )
