@@ -7,6 +7,7 @@ import numpy as np
 import tweepy
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
+
 from src import global_
 
 from .organization import Organization
@@ -126,7 +127,10 @@ class Contributor:
         overlay = Image.open("assets/overlay.png")
         image.paste(overlay, mask=overlay)
 
-        image.save(self.image_bytes)
+        buffer = BytesIO()
+        image.save(buffer, format="png")
+        self.image_bytes = buffer.getvalue()
+
         return image
 
     async def post_to_discord(self) -> None:
@@ -134,7 +138,7 @@ class Contributor:
         Posts contributor result image to Discord.
         """
         webhook = DiscordWebhook(url=global_.DISCORD_HOOK)
-        webhook.add_file(file=self.image_bytes.getbuffer(), filename="contributor.png")
+        webhook.add_file(file=self.image_bytes, filename="contributor.png")
         webhook.execute()
 
     async def post_to_twitter(self) -> None:

@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Any
 
 import aiohttp
+
 from models import Contributor, Organization
 
 from . import global_
@@ -89,10 +90,9 @@ class Bot:
         Shows the avatar of the top contributor.
         """
 
-        image = await contributor.generate_image()
+        await contributor.generate_image()
         await contributor.post_to_discord()
         await contributor.post_to_twitter()
-        image.show()
 
     def run(self) -> None:
         """
