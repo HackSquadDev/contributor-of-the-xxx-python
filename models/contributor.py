@@ -34,13 +34,7 @@ class Contributor:
 
     async def generate_avatar(self) -> Image:
         """
-        Generates the avatar image of the contributor in a seeable format.
-
-        Parameters:
-            file_name: str,  The file name of the contributor. Defaults to the user's ID.
-
-        Returns:
-            An Image object.
+        Generates the avatar image of the contributor in the form of a `PIL.Image` object.
         """
 
         async with aiohttp.ClientSession() as session:
