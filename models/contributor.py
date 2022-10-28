@@ -5,8 +5,8 @@ from typing import Dict
 import aiohttp
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
-from twitter import OAuth, Twitter
 from src import global_
+from twitter import OAuth, Twitter
 
 from .organization import Organization
 
@@ -52,7 +52,6 @@ class Contributor:
             async with session.get(self.organization.avatar_url) as response2:
                 org_avatar_bytes = BytesIO(await response2.read())
                 org_avatar = Image.open(org_avatar_bytes).resize((80, 80))
-
                 image.paste(org_avatar, (60, 28), org_avatar.convert("RGBA"))
 
         draw = ImageDraw.Draw(image)
@@ -134,7 +133,8 @@ class Contributor:
             global_.TWITTER["CONSUMER_SECRET"],
         )
 
-        t = Twitter(auth=auth)
+        twit = Twitter(auth=auth)
         t_upload = Twitter(domain="upload.twitter.com", auth=auth)
         id_img1 = t_upload.media.upload(media=self.image_bytes)["media_id_string"]
-        t.statuses.update(status="Hello World!", media_ids=",".join([id_img1]))
+
+        twit.statuses.update(status="Hello World!", media_ids=",".join([id_img1]))
