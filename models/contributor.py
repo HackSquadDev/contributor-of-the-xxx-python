@@ -129,7 +129,7 @@ class Contributor:
         webhook = DiscordWebhook(
             url=bot_settings.discord_hook,
             content="The top contributor of this month is "
-            + f"`{self.login}` with {self.pr_count} merged prs and {self.issue_count} opened issues.\n\n@everyone",
+            + f"`{self.login}` with {self.pr_count} merged prs and {self.issue_count} opened issues.\n@everyone",
         )
         webhook.add_file(file=self.image_bytes, filename="contributor.png")
         webhook.execute()
