@@ -53,6 +53,14 @@ class Contributor:
             async with session.get(self.organization.avatar_url) as response2:
                 org_avatar_bytes = BytesIO(await response2.read())
                 org_avatar = Image.open(org_avatar_bytes).resize((80, 80))
+
+                bigsize = (org_avatar.size[0] * 3, org_avatar.size[1] * 3)
+                mask = Image.new("L", bigsize, 0)
+                draw = ImageDraw.Draw(mask)
+                draw.ellipse((0, 0) + bigsize, fill=255)
+                mask = mask.resize(org_avatar.size, Image.ANTIALIAS)
+                org_avatar.putalpha(mask)
+
                 image.paste(org_avatar, (60, 28), org_avatar.convert("RGBA"))
 
         draw = ImageDraw.Draw(image)
