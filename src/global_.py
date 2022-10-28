@@ -1,33 +1,19 @@
-from dotenv import dotenv_values
-
-config = dotenv_values(".env")
+from pydantic import BaseSettings
 
 
-def initialize(test: bool = False) -> None:
-    """
-    Initializes environment secrets into native Python environment.
-    """
+class BotSettings(BaseSettings):
+    time_period_days: int
+    github_org_name: str
+    github_token: str
+    twitter_key: str
+    twitter_secret: str
+    twitter_access_token: str
+    twitter_access_secret: str
+    discord_hook: str
+    test_mode: bool
 
-    global TEST_MODE
-    TEST_MODE = test
+    class Config:
+        env_file = ".env"
 
-    global TIME_PERIOD_DAYS
-    TIME_PERIOD_DAYS = config["TIME_PERIOD_DAYS"]
 
-    global GITHUB
-    GITHUB = {
-        "ORG_NAME": config["GITHUB_ORG_NAME"],
-        "TOKEN": config["GITHUB_TOKEN"],
-    }
-
-    if not test:
-        global TWITTER
-        TWITTER = {
-            "CONSUMER_KEY": config["TWITTER_KEY"],
-            "CONSUMER_SECRET": config["TWITTER_SECRET"],
-            "ACCESS_TOKEN": config["TWITTER_ACCESS_TOKEN"],
-            "ACCESS_TOKEN_SECRET": config["TWITTER_ACCESS_SECRET"],
-        }
-
-        global DISCORD_HOOK
-        DISCORD_HOOK = config["DISCORD_HOOK"]
+bot_settings = BotSettings()

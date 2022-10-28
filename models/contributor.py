@@ -5,7 +5,7 @@ from typing import Dict
 import aiohttp
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
-from src import global_
+from src.global_ import bot_settings
 from twitter import OAuth, Twitter
 
 from .organization import Organization
@@ -117,7 +117,7 @@ class Contributor:
         """
         Posts contributor result image to Discord.
         """
-        webhook = DiscordWebhook(url=global_.DISCORD_HOOK)
+        webhook = DiscordWebhook(url=bot_settings.discord_hook)
         webhook.add_file(file=self.image_bytes, filename="contributor.png")
         webhook.execute()
 
@@ -127,10 +127,10 @@ class Contributor:
         """
 
         auth = OAuth(
-            global_.TWITTER["ACCESS_TOKEN"],
-            global_.TWITTER["ACCESS_TOKEN_SECRET"],
-            global_.TWITTER["CONSUMER_KEY"],
-            global_.TWITTER["CONSUMER_SECRET"],
+            bot_settings.twitter_access_token,
+            bot_settings.twitter_access_secret,
+            bot_settings.twitter_key,
+            bot_settings.twitter_secret,
         )
 
         twit = Twitter(auth=auth)
