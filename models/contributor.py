@@ -3,9 +3,9 @@ from io import BytesIO
 from typing import Dict
 
 import aiohttp
-import tweepy
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
+from twitter import OAuth, Twitter
 
 from src import global_
 
@@ -127,15 +127,24 @@ class Contributor:
         """
         Posts contributor result image to Twitter.
         """
-        auth = tweepy.OAuthHandler(
-            global_.TWITTER["CONSUMER_KEY"], global_.TWITTER["CONSUMER_SECRET"]
+        t = Twitter(
+            auth=OAuth(
+                global_.TWITTER["ACCESS_TOKEN"],
+                global_.TWITTER["ACCESS_TOKEN_SECRET"],
+                global_.TWITTER["CONSUMER_KEY"],
+                global_.TWITTER["CONSUMER_SECRET"],
+            )
         )
-        auth.set_access_token(
-            global_.TWITTER["ACCESS_TOKEN"], global_.TWITTER["ACCESS_TOKEN_SECRET"]
+
+        t_upload = Twitter(
+            domain="upload.twitter.com",
+            auth=OAuth(
+                global_.TWITTER["ACCESS_TOKEN"],
+                global_.TWITTER["ACCESS_TOKEN_SECRET"],
+                global_.TWITTER["CONSUMER_KEY"],
+                global_.TWITTER["CONSUMER_SECRET"],
+            ),
         )
-        api = tweepy.API(auth)
-        api.update_status_with_media(
-            status=f"{self.login} has scored {self.pr_count}!",
-            file=self.image_bytes,
-            filename="contributor.png",
-        )
+        id_img1 = t_upload.media.upload(media=self.image_bytes)["media_id_string"]
+
+        t.statuses.update(status="Hello World!", media_ids=",".join([id_img1]))
