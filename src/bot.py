@@ -6,6 +6,7 @@ from typing import Any
 
 import aiocron
 import aiohttp
+
 from models import Contributor, Organization
 
 from . import global_
@@ -37,6 +38,7 @@ class Bot:
                 )
 
             for repo in repos:
+
                 for page in range(1, 100):
                     api = (
                         f"https://api.github.com/repos/{org_name}/{repo}/pulls"
@@ -46,7 +48,7 @@ class Bot:
                     async with session.get(api) as response:
                         data = await response.json()
 
-                        if len(data) == 0:
+                        if not data:
                             break
 
                         for pull in data:
@@ -72,6 +74,33 @@ class Bot:
                                     if handle in contributors
                                     else 1
                                 )
+
+                for page in range(1, 100):
+                    api = (
+                        f"https://api.github.com/repos/{org_name}/{repo}/issues"
+                        + f"?state=all&per_page=100&page={page}"
+                    )
+
+                    async with session.get(api) as response:
+                        data = await response.json()
+
+                        if not data:
+                            break
+
+                        for issue in data:
+                            if not issue.get("pull_request"):
+                                handle = issue["user"]["login"]
+                                difference = datetime.utcnow() - datetime.fromisoformat(
+                                    issue["created_at"][0:10]
+                                )
+
+                                if difference.days > int(global_.TIME_PERIOD_DAYS):
+                                    break
+
+                                if handle in contributors:
+                                    contributors[handle].issue_count = (
+                                        contributors[handle].issue_count + 1
+                                    )
 
         contributors = sorted(
             contributors.items(), key=lambda x: x[1].pr_count, reverse=True
