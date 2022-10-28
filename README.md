@@ -10,7 +10,7 @@ Before running the steps mentioned below, make sure you set the required secrets
 
 ```bash
 # use the example file to create local environment file
-$ cp .env.example .env
+$ mv .env.example .env
 
 # fill up the values using your favorite editor
 $ nano .env
