@@ -1,5 +1,6 @@
 # Imports.
 import asyncio
+import logging
 from datetime import datetime
 from typing import Any
 
@@ -75,7 +76,9 @@ class Bot:
         contributors = sorted(
             contributors.items(), key=lambda x: x[1].pr_count, reverse=True
         )
-        return contributors[0][1]
+        if contributors:
+            return contributors[0][1]
+        return None
 
     def get_contributor_before_run(func) -> Any:
         """
@@ -93,10 +96,12 @@ class Bot:
         """
         Shows the avatar of the top contributor.
         """
-
-        await contributor.generate_image()
-        await contributor.post_to_discord()
-        await contributor.post_to_twitter()
+        if contributor:
+            await contributor.generate_image()
+            await contributor.post_to_discord()
+            await contributor.post_to_twitter()
+        else:
+            logging.warning("No contributor for the given time period.")
 
     def run(self) -> None:
         """
