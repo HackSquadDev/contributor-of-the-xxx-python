@@ -5,8 +5,8 @@ from typing import Dict
 import aiohttp
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
-from twitter import OAuth, Twitter
 from src import global_
+from twitter import OAuth, Twitter
 
 from .organization import Organization
 
@@ -52,7 +52,6 @@ class Contributor:
             async with session.get(self.organization.avatar_url) as response2:
                 org_avatar_bytes = BytesIO(await response2.read())
                 org_avatar = Image.open(org_avatar_bytes).resize((80, 80))
-
                 image.paste(org_avatar, (60, 28), org_avatar.convert("RGBA"))
 
         draw = ImageDraw.Draw(image)
