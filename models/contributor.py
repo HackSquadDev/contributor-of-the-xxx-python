@@ -5,8 +5,9 @@ from typing import Dict
 import aiohttp
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
-from src import global_
 from twitter import OAuth, Twitter
+
+from src import global_
 
 from .organization import Organization
 
@@ -117,7 +118,11 @@ class Contributor:
         """
         Posts contributor result image to Discord.
         """
-        webhook = DiscordWebhook(url=global_.DISCORD_HOOK, content=f"The top contributor of this month is `{self.login}` with {self.pr_count} merged prs and {self.issue_count} opened issues.\n\n@everyone")
+        webhook = DiscordWebhook(
+            url=global_.DISCORD_HOOK,
+            content="The top contributor of this month is "
+            + f"`{self.login}` with {self.pr_count} merged prs and {self.issue_count} opened issues.\n\n@everyone",
+        )
         webhook.add_file(file=self.image_bytes, filename="contributor.png")
         webhook.execute()
 
@@ -137,4 +142,9 @@ class Contributor:
         t_upload = Twitter(domain="upload.twitter.com", auth=auth)
         id_img1 = t_upload.media.upload(media=self.image_bytes)["media_id_string"]
 
-        twit.statuses.update(status=f"The top contributor of this month is {f'@{self.twitter_username}' if self.twitter_username != None else self.login} with {self.pr_count} merged prs and {self.issue_count} opened issues.", media_ids=",".join([id_img1]))
+        twit.statuses.update(
+            status="The top contributor of this month is "
+            + f"{f'@{self.twitter_username}' if self.twitter_username is not None else self.login}"
+            + f" with {self.pr_count} merged prs and {self.issue_count} opened issues.",
+            media_ids=",".join([id_img1]),
+        )
