@@ -127,24 +127,15 @@ class Contributor:
         """
         Posts contributor result image to Twitter.
         """
-        t = Twitter(
-            auth=OAuth(
-                global_.TWITTER["ACCESS_TOKEN"],
-                global_.TWITTER["ACCESS_TOKEN_SECRET"],
-                global_.TWITTER["CONSUMER_KEY"],
-                global_.TWITTER["CONSUMER_SECRET"],
-            )
+        auth = OAuth(
+            global_.TWITTER["ACCESS_TOKEN"],
+            global_.TWITTER["ACCESS_TOKEN_SECRET"],
+            global_.TWITTER["CONSUMER_KEY"],
+            global_.TWITTER["CONSUMER_SECRET"],
         )
 
-        t_upload = Twitter(
-            domain="upload.twitter.com",
-            auth=OAuth(
-                global_.TWITTER["ACCESS_TOKEN"],
-                global_.TWITTER["ACCESS_TOKEN_SECRET"],
-                global_.TWITTER["CONSUMER_KEY"],
-                global_.TWITTER["CONSUMER_SECRET"],
-            ),
-        )
+        t = Twitter(auth=auth)
+        t_upload = Twitter(domain="upload.twitter.com", auth=auth)
         id_img1 = t_upload.media.upload(media=self.image_bytes)["media_id_string"]
 
         t.statuses.update(status="Hello World!", media_ids=",".join([id_img1]))
