@@ -7,7 +7,6 @@ import numpy as np
 import tweepy
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
-
 from src import global_
 
 from .organization import Organization
@@ -109,7 +108,7 @@ class Contributor:
 
         draw.text(
             xy=(1000, 280),
-            text=str(self.pr_count),
+            text=str(self.issue_count),
             fill=(183, 183, 183),
             font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
             anchor="ma",
