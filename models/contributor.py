@@ -6,7 +6,6 @@ import aiohttp
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
 from twitter import OAuth, Twitter
-
 from src import global_
 
 from .organization import Organization
@@ -127,6 +126,7 @@ class Contributor:
         """
         Posts contributor result image to Twitter.
         """
+
         auth = OAuth(
             global_.TWITTER["ACCESS_TOKEN"],
             global_.TWITTER["ACCESS_TOKEN_SECRET"],
@@ -137,5 +137,4 @@ class Contributor:
         t = Twitter(auth=auth)
         t_upload = Twitter(domain="upload.twitter.com", auth=auth)
         id_img1 = t_upload.media.upload(media=self.image_bytes)["media_id_string"]
-
         t.statuses.update(status="Hello World!", media_ids=",".join([id_img1]))
