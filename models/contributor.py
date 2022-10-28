@@ -4,7 +4,7 @@ from typing import Dict
 
 import aiohttp
 import numpy as np
-import tweepy
+from twitter import *
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
 from src import global_
@@ -154,3 +154,13 @@ class Contributor:
             file=self.image_bytes,
             filename="contributor.png",
         )
+        
+        t = Twitter(auth=OAuth(global_.TWITTER["ACCESS_TOKEN"], global_.TWITTER["ACCESS_TOKEN_SECRET"], global_.TWITTER["CONSUMER_KEY"], global_.TWITTER["CONSUMER_SECRET"]))
+        with open("contributor.png", "rb") as imagefile:
+            imagedata = imagefile.read()
+        
+        t_upload = Twitter(domain='upload.twitter.com', auth=OAuth(global_.TWITTER["ACCESS_TOKEN"], global_.TWITTER["ACCESS_TOKEN_SECRET"], global_.TWITTER["CONSUMER_KEY"], global_.TWITTER["CONSUMER_SECRET"]))
+        id_img1 = t_upload.media.upload(media=imagedata)["media_id_string"]
+        
+        t.statuses.update(status="Hello World!", media_ids=",".join([id_img1]))
+
