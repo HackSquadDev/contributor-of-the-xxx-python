@@ -47,7 +47,7 @@ class Bot:
                     async with session.get(api) as response:
                         data = await response.json()
 
-                        if len(data) == 0:
+                        if not data:
                             break
 
                         for pull in data:
