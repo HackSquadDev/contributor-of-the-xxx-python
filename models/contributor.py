@@ -3,10 +3,13 @@ from io import BytesIO
 from typing import Dict
 
 import aiohttp
+
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
-from src import global_
 from twitter import OAuth, Twitter
+
+
+from src import global_
 
 from .organization import Organization
 
@@ -52,6 +55,7 @@ class Contributor:
             async with session.get(self.organization.avatar_url) as response2:
                 org_avatar_bytes = BytesIO(await response2.read())
                 org_avatar = Image.open(org_avatar_bytes).resize((80, 80))
+
                 image.paste(org_avatar, (60, 28), org_avatar.convert("RGBA"))
 
         draw = ImageDraw.Draw(image)
@@ -117,24 +121,32 @@ class Contributor:
         """
         Posts contributor result image to Discord.
         """
-        webhook = DiscordWebhook(url=global_.DISCORD_HOOK)
-        webhook.add_file(file=self.image_bytes, filename="contributor.png")
+        webhook = DiscordWebhook(url=global_.DISCORD_HOOK, content=f"The top contributor of this month is `{self.login}` with {self.pr_count} merged prs and {self.issue_count} opened issues.\n\n@everyone")
+        webhook.add_file(file=self.image_bytes, filename="image.png")
         webhook.execute()
 
     async def post_to_twitter(self) -> None:
         """
         Posts contributor result image to Twitter.
         """
-
-        auth = OAuth(
-            global_.TWITTER["ACCESS_TOKEN"],
-            global_.TWITTER["ACCESS_TOKEN_SECRET"],
-            global_.TWITTER["CONSUMER_KEY"],
-            global_.TWITTER["CONSUMER_SECRET"],
+        t = Twitter(
+            auth=OAuth(
+                global_.TWITTER["ACCESS_TOKEN"],
+                global_.TWITTER["ACCESS_TOKEN_SECRET"],
+                global_.TWITTER["CONSUMER_KEY"],
+                global_.TWITTER["CONSUMER_SECRET"],
+            )
         )
 
-        twit = Twitter(auth=auth)
-        t_upload = Twitter(domain="upload.twitter.com", auth=auth)
+        t_upload = Twitter(
+            domain="upload.twitter.com",
+            auth=OAuth(
+                global_.TWITTER["ACCESS_TOKEN"],
+                global_.TWITTER["ACCESS_TOKEN_SECRET"],
+                global_.TWITTER["CONSUMER_KEY"],
+                global_.TWITTER["CONSUMER_SECRET"],
+            ),
+        )
         id_img1 = t_upload.media.upload(media=self.image_bytes)["media_id_string"]
 
-        twit.statuses.update(status="Hello World!", media_ids=",".join([id_img1]))
+        t.statuses.update(status=f"The top contributor of this month is {f'@{self.twitter_username}' if self.twitter_username != None else self.login} with {self.pr_count} merged prs and {self.issue_count} opened issues.", media_ids=",".join([id_img1]))
