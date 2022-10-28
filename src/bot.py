@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 from typing import Any
 
+import aiocron
 import aiohttp
 from models import Contributor, Organization
 
@@ -107,16 +108,11 @@ class Bot:
         else:
             logging.warning("No contributor for the given time period.")
 
+    @staticmethod
+    @aiocron.crontab("0 0 1 * *")
+    async def every():
+        bot = Bot()
+        await bot.run_tasks()
+
     def run(self) -> None:
-        """
-        Run the required functions in order for the bot.
-        """
-
-        async def every(seconds: float):
-            while True:
-                await self.run_tasks()
-                await asyncio.sleep(seconds)
-
-        loop = asyncio.get_event_loop()
-        loop.create_task(every(seconds=3600 * 24 * int(global_.TIME_PERIOD_DAYS)))
-        loop.run_forever()
+        asyncio.get_event_loop().run_forever()
