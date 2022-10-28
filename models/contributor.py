@@ -3,10 +3,10 @@ from io import BytesIO
 from typing import Dict
 
 import aiohttp
-import numpy as np
 import tweepy
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
+
 from src import global_
 
 from .organization import Organization
@@ -54,22 +54,7 @@ class Contributor:
                 org_avatar_bytes = BytesIO(await response2.read())
                 org_avatar = Image.open(org_avatar_bytes).resize((80, 80))
 
-                height, width = org_avatar.size
-                lum_img = Image.new("L", [height, width], 0)
-
-                org_draw = ImageDraw.Draw(lum_img)
-                org_draw.pieslice([(0, 0), (height, width)], 0, 360, fill=255)
-                org_avatar_arr = np.array(org_avatar)
-                lum_img_arr = np.array(lum_img)
-
-                final_org_avatar = Image.fromarray(
-                    np.dstack((org_avatar_arr, lum_img_arr))
-                )
-
-                try:
-                    image.paste(final_org_avatar, (60, 28), mask=final_org_avatar)
-                except ValueError:
-                    image.paste(final_org_avatar, (60, 28))
+                image.paste(org_avatar, (60, 28), org_avatar.convert("RGBA"))
 
         draw = ImageDraw.Draw(image)
 
