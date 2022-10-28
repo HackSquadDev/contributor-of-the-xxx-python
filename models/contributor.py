@@ -133,7 +133,8 @@ class Contributor:
             global_.TWITTER["CONSUMER_SECRET"],
         )
 
-        t = Twitter(auth=auth)
+        twit = Twitter(auth=auth)
         t_upload = Twitter(domain="upload.twitter.com", auth=auth)
         id_img1 = t_upload.media.upload(media=self.image_bytes)["media_id_string"]
-        t.statuses.update(status="Hello World!", media_ids=",".join([id_img1]))
+
+        twit.statuses.update(status="Hello World!", media_ids=",".join([id_img1]))
