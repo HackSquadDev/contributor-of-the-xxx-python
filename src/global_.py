@@ -3,10 +3,13 @@ from dotenv import dotenv_values
 config = dotenv_values(".env")
 
 
-def initialize(social_secrets: bool = True) -> None:
+def initialize(test: bool = False) -> None:
     """
     Initializes environment secrets into native Python environment.
     """
+
+    global TEST_MODE
+    TEST_MODE = test
 
     global TIME_PERIOD_DAYS
     TIME_PERIOD_DAYS = config["TIME_PERIOD_DAYS"]
@@ -17,7 +20,7 @@ def initialize(social_secrets: bool = True) -> None:
         "TOKEN": config["GITHUB_TOKEN"],
     }
 
-    if social_secrets:
+    if not test:
         global TWITTER
         TWITTER = {
             "CONSUMER_KEY": config["TWITTER_KEY"],

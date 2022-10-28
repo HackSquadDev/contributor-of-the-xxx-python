@@ -5,7 +5,6 @@ from datetime import datetime
 from typing import Any
 
 import aiohttp
-
 from models import Contributor, Organization
 
 from . import global_
@@ -124,9 +123,14 @@ class Bot:
         Shows the avatar of the top contributor.
         """
         if contributor:
-            await contributor.generate_image()
-            await contributor.post_to_discord()
-            await contributor.post_to_twitter()
+            image = await contributor.generate_image()
+
+            if not global_.TEST_MODE:
+                await contributor.post_to_discord()
+                await contributor.post_to_twitter()
+            else:
+                image.show()
+
         else:
             logging.warning("No contributor for the given time period.")
 
