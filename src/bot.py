@@ -137,7 +137,7 @@ class Bot:
             logging.warning("No contributor for the given time period.")
 
     @staticmethod
-    @aiocron.crontab(f"0 0 {bot_settings.time_period_days} * *")
+    @aiocron.crontab(f"0 0 */{bot_settings.time_period_days} * *")
     async def every():
         bot = Bot()
         await bot.run_tasks()
