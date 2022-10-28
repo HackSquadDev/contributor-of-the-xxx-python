@@ -9,7 +9,7 @@ import aiohttp
 
 from models import Contributor, Organization
 
-from . import global_
+from .global_ import bot_settings
 
 
 class Bot:
@@ -22,10 +22,10 @@ class Bot:
         """
 
         contributors = {}
-        headers = {"Authorization": f"token {global_.GITHUB['TOKEN']}"}
+        headers = {"Authorization": f"token {bot_settings.github_token}"}
 
         async with aiohttp.ClientSession(headers=headers) as session:
-            org_name = global_.GITHUB["ORG_NAME"]
+            org_name = bot_settings.github_org_name
             api = f"https://api.github.com/orgs/{org_name}/repos"
 
             async with session.get(api) as response:
@@ -58,7 +58,7 @@ class Bot:
                                     pull["merged_at"][0:10]
                                 )
 
-                                if difference.days > int(global_.TIME_PERIOD_DAYS):
+                                if difference.days > int(bot_settings.time_period_days):
                                     break
 
                                 if handle not in contributors:
@@ -94,7 +94,7 @@ class Bot:
                                     issue["created_at"][0:10]
                                 )
 
-                                if difference.days > int(global_.TIME_PERIOD_DAYS):
+                                if difference.days > int(bot_settings.time_period_days):
                                     break
 
                                 if handle in contributors:
@@ -128,7 +128,7 @@ class Bot:
         if contributor:
             image = await contributor.generate_image()
 
-            if not global_.TEST_MODE:
+            if not bot_settings.test_mode:
                 await contributor.post_to_discord()
                 await contributor.post_to_twitter()
             else:
@@ -138,7 +138,7 @@ class Bot:
             logging.warning("No contributor for the given time period.")
 
     @staticmethod
-    @aiocron.crontab("0 0 1 * *")
+    @aiocron.crontab(f"0 0 */{bot_settings.time_period_days} * *")
     async def every():
         bot = Bot()
         await bot.run_tasks()
