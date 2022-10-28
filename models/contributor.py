@@ -107,7 +107,7 @@ class Contributor:
         )
 
         overlay = Image.open("assets/overlay.png")
-        image.paste(overlay, mask=overlay)
+        image = Image.alpha_composite(image, overlay)
 
         buffer = BytesIO()
         image.save(buffer, format="png")
