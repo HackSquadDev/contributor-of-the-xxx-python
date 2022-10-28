@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any
 
 import aiohttp
+
 from models import Contributor, Organization
 
 from . import global_
@@ -87,6 +88,7 @@ class Bot:
 
                         for issue in data:
                             if not issue.get("pull_request"):
+                                handle = issue["user"]["login"]
                                 difference = datetime.utcnow() - datetime.fromisoformat(
                                     issue["created_at"][0:10]
                                 )
