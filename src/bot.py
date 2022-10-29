@@ -6,26 +6,25 @@ from typing import Any
 
 import aiocron
 import aiohttp
-
 from models import Contributor, Organization
 
-from .global_ import bot_settings
+from src import secrets
 
 
 class Bot:
     def __init__(self) -> None:
         pass
 
-    async def get_data(self) -> Contributor | None:
+    async def get_contributor(self) -> Contributor | None:
         """
-        GET github data by making a simple request to GitHub's REST API.
+        GET top contributor data by making a simple request to GitHub's REST API.
         """
 
         contributors = {}
-        headers = {"Authorization": f"token {bot_settings.github_token}"}
+        headers = {"Authorization": f"token {secrets.github_token}"}
 
         async with aiohttp.ClientSession(headers=headers) as session:
-            org_name = bot_settings.github_org_name
+            org_name = secrets.github_org_name
             org_api = f"https://api.github.com/orgs/{org_name}/repos"
 
             async with session.get(org_api) as response:
@@ -38,7 +37,6 @@ class Bot:
                 )
 
             for repo in repos:
-
                 for page in range(1, 100):
                     api = (
                         f"https://api.github.com/repos/{org_name}/{repo}/issues"
@@ -60,7 +58,7 @@ class Bot:
                                     pull["merged_at"][0:10]
                                 )
 
-                                if difference.days > int(bot_settings.time_period_days):
+                                if difference.days > int(secrets.time_period_days):
                                     break
 
                                 if handle not in contributors:
@@ -77,7 +75,7 @@ class Bot:
                                 item["created_at"][0:10]
                             )
 
-                            if difference.days > int(bot_settings.time_period_days):
+                            if difference.days > int(secrets.time_period_days):
                                 break
 
                             if handle not in contributors:
@@ -105,7 +103,7 @@ class Bot:
         """
 
         async def wrapper(self):
-            data = await self.get_data()
+            data = await self.get_contributor()
             return await func(self, data)
 
         return wrapper
@@ -118,7 +116,7 @@ class Bot:
         if contributor:
             image = await contributor.generate_image()
 
-            if not bot_settings.test_mode:
+            if not secrets.test_mode:
                 await contributor.post_to_discord()
                 await contributor.post_to_twitter()
             else:
@@ -128,7 +126,7 @@ class Bot:
             logging.warning("No contributor for the given time period.")
 
     @staticmethod
-    @aiocron.crontab(f"0 0 */{bot_settings.time_period_days} * *")
+    @aiocron.crontab(f"0 0 */{secrets.time_period_days} * *")
     async def every() -> None:
         bot = Bot()
         await bot.run_once()

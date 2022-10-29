@@ -6,7 +6,7 @@ from typing import Dict
 import aiohttp
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
-from src.global_ import bot_settings
+from src import secrets
 from twitter import OAuth, Twitter
 
 from .organization import Organization
@@ -153,7 +153,7 @@ class Contributor:
         """
 
         webhook = DiscordWebhook(
-            url=bot_settings.discord_hook,
+            url=secrets.discord_hook,
             content="The top contributor of this month is "
             + f"`{self.login}` with {self.pr_count} merged prs and {self.issue_count} opened issues.",
         )
@@ -166,10 +166,10 @@ class Contributor:
         """
 
         auth = OAuth(
-            bot_settings.twitter_access_token,
-            bot_settings.twitter_access_secret,
-            bot_settings.twitter_key,
-            bot_settings.twitter_secret,
+            secrets.twitter_access_token,
+            secrets.twitter_access_secret,
+            secrets.twitter_key,
+            secrets.twitter_secret,
         )
 
         twit = Twitter(auth=auth)
