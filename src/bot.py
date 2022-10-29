@@ -6,6 +6,7 @@ from typing import Any
 
 import aiocron
 import aiohttp
+
 from models import Contributor, Organization
 
 from .global_ import bot_settings
@@ -68,11 +69,7 @@ class Bot:
                                         data, organization=organization
                                     )
 
-                                contributors[handle].pr_count = (
-                                    contributors[handle].pr_count + 1
-                                    if handle in contributors
-                                    else 1
-                                )
+                                contributors[handle].pr_count += 1
 
                 for page in range(1, 100):
                     api = (
@@ -97,9 +94,7 @@ class Bot:
                                     break
 
                                 if handle in contributors:
-                                    contributors[handle].issue_count = (
-                                        contributors[handle].issue_count + 1
-                                    )
+                                    contributors[handle].issue_count += 1
 
         contributors = sorted(
             contributors.items(), key=lambda x: x[1].pr_count, reverse=True
