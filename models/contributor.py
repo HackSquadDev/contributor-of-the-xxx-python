@@ -100,6 +100,8 @@ class Contributor:
                     message += "Week"
                 case 30:
                     message += "Month"
+                case _:
+                    message += f"{secrets.time_period_days} Days"
 
             return message
 
