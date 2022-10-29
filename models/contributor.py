@@ -1,13 +1,13 @@
 # Imports.
+import random
 from io import BytesIO
 from typing import Dict
 
 import aiohttp
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
-from twitter import OAuth, Twitter
-
 from src.global_ import bot_settings
+from twitter import OAuth, Twitter
 
 from .organization import Organization
 
@@ -36,6 +36,31 @@ class Contributor:
 
     def __str__(self) -> str:
         return f"Top contributor of {self.org}: {self.login} | {self.html_url}"
+
+    @staticmethod
+    def get_quote() -> str:
+        """
+        Returns a fancy tech quote :P
+        """
+
+        quotes = [
+            "Technology is best when it brings people together.",
+            "Talk is cheap, show me the code",
+            "It is only when they go wrong that machines remind you how powerful they are.",
+            "Data! Data Data! I can't make bricks without clay!",
+            "Without data you're just another person with an opinion.",
+            "If the statistics are boring, you've got the wrong numbers.",
+            "Data is a precious thing and will last longer than the systems themselves.",
+            "Errors using inadequate data are much less than those using no data at all.",
+            "It's not a faith in technology. It's faith in people.",
+            "I have not failed. I've just found 10,000 ways that won't work.",
+            "Technology like art is a soaring exercise of the human imagination.",
+            "Innovation is the outcome of a habit, not a random act.",
+            "Any sufficiently advanced technology is indistinguishable from magic.",
+            "It's not that we use technology, we live technology.",
+            "You affect the world by what you browse.",
+        ]
+        return random.choice(quotes)
 
     async def generate_image(self) -> Image:
         """
@@ -84,7 +109,7 @@ class Contributor:
 
         draw.text(
             xy=((image.width / 2), 600),
-            text="Talk is cheap, show me the code.",
+            text=self.get_quote(),
             fill=(255, 255, 255),
             font=ImageFont.truetype("assets/fonts/JosefinSansTI.ttf", 25),
             anchor="mm",
@@ -126,6 +151,7 @@ class Contributor:
         """
         Posts contributor result image to Discord.
         """
+
         webhook = DiscordWebhook(
             url=bot_settings.discord_hook,
             content="The top contributor of this month is "
