@@ -26,9 +26,9 @@ class Bot:
 
         async with aiohttp.ClientSession(headers=headers) as session:
             org_name = bot_settings.github_org_name
-            api = f"https://api.github.com/orgs/{org_name}/repos"
+            org_api = f"https://api.github.com/orgs/{org_name}/repos"
 
-            async with session.get(api) as response:
+            async with session.get(org_api) as response:
                 data = await response.json()
                 repos = [repo["name"] for repo in data]
 
@@ -40,12 +40,12 @@ class Bot:
             for repo in repos:
 
                 for page in range(1, 100):
-                    api = (
+                    pr_api = (
                         f"https://api.github.com/repos/{org_name}/{repo}/pulls"
                         + f"?state=closed&per_page=100&page={page}"
                     )
 
-                    async with session.get(api) as response:
+                    async with session.get(pr_api) as response:
                         data = await response.json()
 
                         if not data:
@@ -62,8 +62,8 @@ class Bot:
                                     break
 
                                 if handle not in contributors:
-                                    api = f"https://api.github.com/users/{handle}"
-                                    async with session.get(api) as response:
+                                    user_api = f"https://api.github.com/users/{handle}"
+                                    async with session.get(user_api) as response:
                                         data = await response.json()
                                     contributors[handle] = Contributor(
                                         data, organization=organization
@@ -72,12 +72,12 @@ class Bot:
                                 contributors[handle].pr_count += 1
 
                 for page in range(1, 100):
-                    api = (
+                    issue_api = (
                         f"https://api.github.com/repos/{org_name}/{repo}/issues"
                         + f"?state=all&per_page=100&page={page}"
                     )
 
-                    async with session.get(api) as response:
+                    async with session.get(issue_api) as response:
                         data = await response.json()
 
                         if not data:
