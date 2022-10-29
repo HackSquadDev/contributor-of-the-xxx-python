@@ -5,7 +5,9 @@ from src.bot import Bot
 # Set `.env` TEST_MODE=true
 
 # Running the bot.
+
+# Set the run_at_start argument to False if you'd not like to optionally
+# execute tasks every time you start the bot.
 if __name__ == "__main__":
     bot = Bot()
-    # Pass the `run_at_start` argument to make the bot run at start
-    bot.run()
+    bot.run(run_at_start=True)
