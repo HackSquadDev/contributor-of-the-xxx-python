@@ -52,10 +52,10 @@ class Bot:
                         break
 
                     for item in data:
+                        handle = item["user"]["login"]
                         if item.get("pull_request"):
                             pull = item["pull_request"]
                             if pull["merged_at"] is not None:
-                                handle = item["user"]["login"]
                                 difference = datetime.utcnow() - datetime.fromisoformat(
                                     pull["merged_at"][0:10]
                                 )
@@ -73,7 +73,6 @@ class Bot:
 
                                 contributors[handle].pr_count += 1
                         else:
-                            handle = item["user"]["login"]
                             difference = datetime.utcnow() - datetime.fromisoformat(
                                 item["created_at"][0:10]
                             )
