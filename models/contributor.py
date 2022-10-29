@@ -90,6 +90,27 @@ class Contributor:
 
         draw = ImageDraw.Draw(image)
 
+        def contributor_of_the() -> str:
+            message = "Contributor of the "
+
+            match (secrets.time_period_days):
+                case 1:
+                    message += "Day"
+                case 7:
+                    message += "Week"
+                case 30:
+                    message += "Month"
+
+            return message
+
+        draw.text(
+            xy=((image.width / 2), 165),
+            text=contributor_of_the(),
+            fill=(255, 255, 255),
+            font=ImageFont.truetype("assets/fonts/JosefinSansT.ttf", 28),
+            anchor="mm",
+        )
+
         draw.text(
             xy=((image.width / 2), 210),
             text=self.login,
