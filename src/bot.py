@@ -27,33 +27,56 @@ class Bot:
             org_name = secrets.github_org_name
             org_api = f"https://api.github.com/orgs/{org_name}/repos"
 
-            async with session.get(org_api) as response:
-                data = await response.json()
-                repos = [repo["name"] for repo in data]
+            try:
+                async with session.get(org_api) as response:
+                    data = await response.json()
+                    repos = [repo["name"] for repo in data]
 
-                organization = Organization(
-                    login=data[0]["owner"]["login"],
-                    avatar_url=data[0]["owner"]["avatar_url"],
-                )
+                    organization = Organization(
+                        login=data[0]["owner"]["login"],
+                        avatar_url=data[0]["owner"]["avatar_url"],
+                    )
+            except:
+                logging.error(f"Failed to get organization data. Status code: {response.status}")
+                return
 
             for repo in repos:
+
                 for page in range(1, 100):
                     api = (
                         f"https://api.github.com/repos/{org_name}/{repo}/issues"
                         + f"?state=all&per_page=100&page={page}"
                     )
 
-                    async with session.get(api) as response:
-                        data = await response.json()
+                    try:
 
-                    if not data:
-                        break
+                        async with session.get(api) as response:
+                            data = await response.json()
 
-                    for item in data:
-                        handle = item["user"]["login"]
-                        if item.get("pull_request"):
-                            pull = item["pull_request"]
-                            if pull["merged_at"] is not None:
+                        if not data:
+                            break
+
+                        for item in data:
+                            handle = item["user"]["login"]
+                            if item.get("pull_request"):
+                                pull = item["pull_request"]
+                                if pull["merged_at"] is not None:
+                                    difference = datetime.utcnow() - datetime.fromisoformat(
+                                        pull["merged_at"][0:10]
+                                    )
+                                    if difference.days > int(secrets.time_period_days):
+                                        break
+
+                                    if handle not in contributors:
+                                        user_api = f"https://api.github.com/users/{handle}"
+                                        async with session.get(user_api) as response:
+                                            data = await response.json()
+                                        contributors[handle] = Contributor(
+                                            data, organization=organization
+                                        )
+
+                                    contributors[handle].pr_count += 1
+                            else:
                                 difference = datetime.utcnow() - datetime.fromisoformat(
                                     pull["merged_at"][0:10]
                                 )
@@ -69,24 +92,10 @@ class Bot:
                                         data, organization=organization
                                     )
 
-                                contributors[handle].pr_count += 1
-                        else:
-                            difference = datetime.utcnow() - datetime.fromisoformat(
-                                item["created_at"][0:10]
-                            )
-
-                            if difference.days > int(secrets.time_period_days):
-                                break
-
-                            if handle not in contributors:
-                                user_api = f"https://api.github.com/users/{handle}"
-                                async with session.get(user_api) as response:
-                                    data = await response.json()
-                                contributors[handle] = Contributor(
-                                    data, organization=organization
-                                )
-
-                            contributors[handle].issue_count += 1
+                                contributors[handle].issue_count += 1
+                    except:
+                        logging.error(f"Failed to get pull requests or issues count. Status code: {response.status}")
+                        return
 
         contributors = sorted(
             contributors.items(), key=lambda x: x[1].pr_count, reverse=True
@@ -117,8 +126,12 @@ class Bot:
             image = await contributor.generate_image()
 
             if not secrets.test_mode:
-                await contributor.post_to_discord()
-                await contributor.post_to_twitter()
+                try:
+                    await contributor.post_to_discord()
+                    await contributor.post_to_twitter()
+                except Exception as e:
+                    logging.error("Failed to post to Discord or Twitter. Error:\n\n" + e)
+                    return
             else:
                 image.show()
 
@@ -134,5 +147,6 @@ class Bot:
     def run(self, *, run_at_start: bool = False) -> None:
         if run_at_start:
             asyncio.get_event_loop().run_until_complete(self.run_once())
+            
 
         asyncio.get_event_loop().run_forever()
