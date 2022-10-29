@@ -6,7 +6,6 @@ from typing import Any
 
 import aiocron
 import aiohttp
-
 from models import Contributor, Organization
 
 from .global_ import bot_settings
@@ -16,7 +15,7 @@ class Bot:
     def __init__(self) -> None:
         pass
 
-    async def get_data(self) -> Any:
+    async def get_data(self) -> Contributor | None:
         """
         GET github data by making a simple request to GitHub's REST API.
         """
@@ -105,9 +104,11 @@ class Bot:
         contributors = sorted(
             contributors.items(), key=lambda x: x[1].pr_count, reverse=True
         )
+
         if contributors:
             return contributors[0][1]
-        return None
+        else:
+            return None
 
     def get_contributor_before_run(func) -> Any:
         """
@@ -121,7 +122,7 @@ class Bot:
         return wrapper
 
     @get_contributor_before_run
-    async def run_tasks(self, contributor: Contributor) -> None:
+    async def run_once(self, contributor: Contributor) -> None:
         """
         Shows the avatar of the top contributor.
         """
@@ -137,16 +138,14 @@ class Bot:
         else:
             logging.warning("No contributor for the given time period.")
 
-    async def run_once(self):
-        await self.run_tasks()
-
     @staticmethod
     @aiocron.crontab(f"0 0 */{bot_settings.time_period_days} * *")
-    async def every():
+    async def every() -> None:
         bot = Bot()
-        await bot.run_tasks()
+        await bot.run_once()
 
-    def run(self, run_at_start: bool = False) -> None:
+    def run(self, *, run_at_start: bool = False) -> None:
         if run_at_start:
             asyncio.run(self.run_once())
+
         asyncio.get_event_loop().run_forever()
