@@ -7,4 +7,5 @@ from src.bot import Bot
 # Running the bot.
 if __name__ == "__main__":
     bot = Bot()
+    # Pass the `run_at_start` argument to make the bot run at start
     bot.run()
