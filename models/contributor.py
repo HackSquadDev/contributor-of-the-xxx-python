@@ -73,7 +73,7 @@ class Contributor:
             async with session.get(self.avatar_url) as response:
                 avatar_bytes = BytesIO(await response.read())
                 avatar = Image.open(avatar_bytes).resize((200, 200))
-                image.paste(avatar, (500, 216))
+                image.paste(avatar, (500, 270))
 
             async with session.get(self.organization.avatar_url) as response2:
                 org_avatar_bytes = BytesIO(await response2.read())
@@ -91,7 +91,7 @@ class Contributor:
         draw = ImageDraw.Draw(image)
 
         draw.text(
-            xy=((image.width / 2), 160),
+            xy=((image.width / 2), 210),
             text=self.login,
             fill=(255, 255, 255),
             font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 40),
@@ -100,7 +100,7 @@ class Contributor:
 
         if self.bio:
             draw.text(
-                xy=((image.width / 2), 500),
+                xy=((image.width / 2), 540),
                 text=self.bio,
                 fill=(255, 255, 255),
                 font=ImageFont.truetype("assets/fonts/JosefinSansEL.ttf", 30),
@@ -108,10 +108,10 @@ class Contributor:
             )
 
         draw.text(
-            xy=((image.width / 2), 600),
+            xy=((image.width / 2), 640),
             text=self.get_quote(),
             fill=(255, 255, 255),
-            font=ImageFont.truetype("assets/fonts/JosefinSansTI.ttf", 25),
+            font=ImageFont.truetype("assets/fonts/JosefinSansTI.ttf", 21),
             anchor="mm",
         )
 
