@@ -137,11 +137,16 @@ class Bot:
         else:
             logging.warning("No contributor for the given time period.")
 
+    async def run_once(self):
+        await self.run_tasks()
+
     @staticmethod
     @aiocron.crontab(f"0 0 */{bot_settings.time_period_days} * *")
     async def every():
         bot = Bot()
         await bot.run_tasks()
 
-    def run(self) -> None:
+    def run(self, run_at_start: bool = False) -> None:
+        if run_at_start:
+            asyncio.run(self.run_once())
         asyncio.get_event_loop().run_forever()
