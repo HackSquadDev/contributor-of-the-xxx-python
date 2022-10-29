@@ -15,7 +15,7 @@ class Bot:
     def __init__(self) -> None:
         pass
 
-    async def get_data(self) -> Any:
+    async def get_data(self) -> Contributor | None:
         """
         GET github data by making a simple request to GitHub's REST API.
         """
@@ -104,9 +104,11 @@ class Bot:
         contributors = sorted(
             contributors.items(), key=lambda x: x[1].pr_count, reverse=True
         )
+
         if contributors:
             return contributors[0][1]
-        return None
+        else:
+            return None
 
     def get_contributor_before_run(func) -> Any:
         """
