@@ -6,6 +6,7 @@ from typing import Any
 
 import aiocron
 import aiohttp
+
 from models import Contributor, Organization
 
 from .global_ import bot_settings
@@ -25,9 +26,9 @@ class Bot:
 
         async with aiohttp.ClientSession(headers=headers) as session:
             org_name = bot_settings.github_org_name
-            api = f"https://api.github.com/orgs/{org_name}/repos"
+            org_api = f"https://api.github.com/orgs/{org_name}/repos"
 
-            async with session.get(api) as response:
+            async with session.get(org_api) as response:
                 data = await response.json()
                 repos = [repo["name"] for repo in data]
 
@@ -40,19 +41,21 @@ class Bot:
 
                 for page in range(1, 100):
                     api = (
-                        f"https://api.github.com/repos/{org_name}/{repo}/pulls"
-                        + f"?state=closed&per_page=100&page={page}"
+                        f"https://api.github.com/repos/{org_name}/{repo}/issues"
+                        + f"?state=all&per_page=100&page={page}"
                     )
 
                     async with session.get(api) as response:
                         data = await response.json()
 
-                        if not data:
-                            break
+                    if not data:
+                        break
 
-                        for pull in data:
+                    for item in data:
+                        handle = item["user"]["login"]
+                        if item.get("pull_request"):
+                            pull = item["pull_request"]
                             if pull["merged_at"] is not None:
-                                handle = pull["user"]["login"]
                                 difference = datetime.utcnow() - datetime.fromisoformat(
                                     pull["merged_at"][0:10]
                                 )
@@ -61,45 +64,31 @@ class Bot:
                                     break
 
                                 if handle not in contributors:
-                                    api = f"https://api.github.com/users/{handle}"
-                                    async with session.get(api) as response:
+                                    user_api = f"https://api.github.com/users/{handle}"
+                                    async with session.get(user_api) as response:
                                         data = await response.json()
                                     contributors[handle] = Contributor(
                                         data, organization=organization
                                     )
 
-                                contributors[handle].pr_count = (
-                                    contributors[handle].pr_count + 1
-                                    if handle in contributors
-                                    else 1
+                                contributors[handle].pr_count += 1
+                        else:
+                            difference = datetime.utcnow() - datetime.fromisoformat(
+                                item["created_at"][0:10]
+                            )
+
+                            if difference.days > int(bot_settings.time_period_days):
+                                break
+
+                            if handle not in contributors:
+                                user_api = f"https://api.github.com/users/{handle}"
+                                async with session.get(user_api) as response:
+                                    data = await response.json()
+                                contributors[handle] = Contributor(
+                                    data, organization=organization
                                 )
 
-                for page in range(1, 100):
-                    api = (
-                        f"https://api.github.com/repos/{org_name}/{repo}/issues"
-                        + f"?state=all&per_page=100&page={page}"
-                    )
-
-                    async with session.get(api) as response:
-                        data = await response.json()
-
-                        if not data:
-                            break
-
-                        for issue in data:
-                            if not issue.get("pull_request"):
-                                handle = issue["user"]["login"]
-                                difference = datetime.utcnow() - datetime.fromisoformat(
-                                    issue["created_at"][0:10]
-                                )
-
-                                if difference.days > int(bot_settings.time_period_days):
-                                    break
-
-                                if handle in contributors:
-                                    contributors[handle].issue_count = (
-                                        contributors[handle].issue_count + 1
-                                    )
+                            contributors[handle].issue_count += 1
 
         contributors = sorted(
             contributors.items(), key=lambda x: x[1].pr_count, reverse=True
