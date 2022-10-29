@@ -146,6 +146,6 @@ class Bot:
 
     def run(self, *, run_at_start: bool = False) -> None:
         if run_at_start:
-            asyncio.run(self.run_once())
+            asyncio.get_event_loop().run_until_complete(self.run_once())
 
         asyncio.get_event_loop().run_forever()
