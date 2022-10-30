@@ -1,0 +1,21 @@
+name: Format
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  format:
+    name: black
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Check
+        uses: psf/black@stable
+        with:
+          options: "--check --verbose"
+          version: "~= 22.0"
