@@ -42,10 +42,7 @@ class Bot:
 
             for repo in repos:
                 for page in range(1, 100):
-                    api = (
-                        f"https://api.github.com/repos/{org_name}/{repo}/issues"
-                        + f"?state=all&per_page=100&page={page}"
-                    )
+                    api = f"https://api.github.com/repos/{org_name}/{repo}/issues" + f"?state=all&per_page=100&page={page}"
 
                     async with session.get(api) as response:
                         data = await response.json()
@@ -58,9 +55,7 @@ class Bot:
                         if item.get("pull_request"):
                             pull = item["pull_request"]
                             if pull["merged_at"] is not None:
-                                difference = datetime.utcnow() - datetime.fromisoformat(
-                                    pull["merged_at"][0:10]
-                                )
+                                difference = datetime.utcnow() - datetime.fromisoformat(pull["merged_at"][0:10])
 
                                 if difference.days > int(secrets.time_period_days):
                                     break
@@ -69,15 +64,11 @@ class Bot:
                                     user_api = f"https://api.github.com/users/{handle}"
                                     async with session.get(user_api) as response:
                                         data = await response.json()
-                                    contributors[handle] = Contributor(
-                                        data, organization=organization
-                                    )
+                                    contributors[handle] = Contributor(data, organization=organization)
 
                                 contributors[handle].pr_count += 1
                         else:
-                            difference = datetime.utcnow() - datetime.fromisoformat(
-                                item["created_at"][0:10]
-                            )
+                            difference = datetime.utcnow() - datetime.fromisoformat(item["created_at"][0:10])
 
                             if difference.days > int(secrets.time_period_days):
                                 break
@@ -86,15 +77,11 @@ class Bot:
                                 user_api = f"https://api.github.com/users/{handle}"
                                 async with session.get(user_api) as response:
                                     data = await response.json()
-                                contributors[handle] = Contributor(
-                                    data, organization=organization
-                                )
+                                contributors[handle] = Contributor(data, organization=organization)
 
                             contributors[handle].issue_count += 1
 
-        contributors = sorted(
-            contributors.items(), key=lambda x: x[1].pr_count, reverse=True
-        )
+        contributors = sorted(contributors.items(), key=lambda x: x[1].pr_count, reverse=True)
 
         if contributors:
             return contributors[0][1]
