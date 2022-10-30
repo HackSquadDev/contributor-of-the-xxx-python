@@ -1,14 +1,13 @@
 # Imports.
+import random
 from io import BytesIO
 from typing import Dict
 
 import aiohttp
-import numpy as np
-import tweepy
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
-
-from src import global_
+from src import secrets
+from twitter import OAuth, Twitter
 
 from .organization import Organization
 
@@ -38,6 +37,31 @@ class Contributor:
     def __str__(self) -> str:
         return f"Top contributor of {self.org}: {self.login} | {self.html_url}"
 
+    @staticmethod
+    def get_quote() -> str:
+        """
+        Returns a fancy tech quote :P
+        """
+
+        quotes = [
+            "Technology is best when it brings people together.",
+            "Talk is cheap, show me the code",
+            "It is only when they go wrong that machines remind you how powerful they are.",
+            "Data! Data Data! I can't make bricks without clay!",
+            "Without data you're just another person with an opinion.",
+            "If the statistics are boring, you've got the wrong numbers.",
+            "Data is a precious thing and will last longer than the systems themselves.",
+            "Errors using inadequate data are much less than those using no data at all.",
+            "It's not a faith in technology. It's faith in people.",
+            "I have not failed. I've just found 10,000 ways that won't work.",
+            "Technology like art is a soaring exercise of the human imagination.",
+            "Innovation is the outcome of a habit, not a random act.",
+            "Any sufficiently advanced technology is indistinguishable from magic.",
+            "It's not that we use technology, we live technology.",
+            "You affect the world by what you browse.",
+        ]
+        return random.choice(quotes)
+
     async def generate_image(self) -> Image:
         """
         Generates the banner image for the top contributor.
@@ -49,33 +73,33 @@ class Contributor:
             async with session.get(self.avatar_url) as response:
                 avatar_bytes = BytesIO(await response.read())
                 avatar = Image.open(avatar_bytes).resize((200, 200))
-                image.paste(avatar, (500, 216))
+                image.paste(avatar, (500, 270))
 
             async with session.get(self.organization.avatar_url) as response2:
                 org_avatar_bytes = BytesIO(await response2.read())
                 org_avatar = Image.open(org_avatar_bytes).resize((80, 80))
 
-                height, width = org_avatar.size
-                lum_img = Image.new("L", [height, width], 0)
+                bigsize = (org_avatar.size[0] * 3, org_avatar.size[1] * 3)
+                mask = Image.new("L", bigsize, 0)
+                draw = ImageDraw.Draw(mask)
+                draw.ellipse((0, 0) + bigsize, fill=255)
+                mask = mask.resize(org_avatar.size, Image.ANTIALIAS)
+                org_avatar.putalpha(mask)
 
-                org_draw = ImageDraw.Draw(lum_img)
-                org_draw.pieslice([(0, 0), (height, width)], 0, 360, fill=255)
-                org_avatar_arr = np.array(org_avatar)
-                lum_img_arr = np.array(lum_img)
-
-                final_org_avatar = Image.fromarray(
-                    np.dstack((org_avatar_arr, lum_img_arr))
-                )
-
-                try:
-                    image.paste(final_org_avatar, (60, 28), mask=final_org_avatar)
-                except ValueError:
-                    image.paste(final_org_avatar, (60, 28))
+                image.paste(org_avatar, (60, 28), org_avatar.convert("RGBA"))
 
         draw = ImageDraw.Draw(image)
 
         draw.text(
-            xy=((image.width / 2), 160),
+            xy=((image.width / 2), 165),
+            text=self.contributor_of_the(),
+            fill=(255, 255, 255),
+            font=ImageFont.truetype("assets/fonts/JosefinSansT.ttf", 28),
+            anchor="mm",
+        )
+
+        draw.text(
+            xy=((image.width / 2), 210),
             text=self.login,
             fill=(255, 255, 255),
             font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 40),
@@ -84,7 +108,7 @@ class Contributor:
 
         if self.bio:
             draw.text(
-                xy=((image.width / 2), 500),
+                xy=((image.width / 2), 540),
                 text=self.bio,
                 fill=(255, 255, 255),
                 font=ImageFont.truetype("assets/fonts/JosefinSansEL.ttf", 30),
@@ -92,10 +116,10 @@ class Contributor:
             )
 
         draw.text(
-            xy=((image.width / 2), 600),
-            text="Talk is cheap, show me the code.",
+            xy=((image.width / 2), 640),
+            text=self.get_quote(),
             fill=(255, 255, 255),
-            font=ImageFont.truetype("assets/fonts/JosefinSansTI.ttf", 25),
+            font=ImageFont.truetype("assets/fonts/JosefinSansTI.ttf", 21),
             anchor="mm",
         )
 
@@ -109,7 +133,7 @@ class Contributor:
 
         draw.text(
             xy=(1000, 280),
-            text=str(self.pr_count),
+            text=str(self.issue_count),
             fill=(183, 183, 183),
             font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
             anchor="ma",
@@ -123,7 +147,7 @@ class Contributor:
         )
 
         overlay = Image.open("assets/overlay.png")
-        image.paste(overlay, mask=overlay)
+        image = Image.alpha_composite(image, overlay)
 
         buffer = BytesIO()
         image.save(buffer, format="png")
@@ -131,11 +155,31 @@ class Contributor:
 
         return image
 
+    def contributor_of_the(self) -> str:
+        message = "Contributor of the "
+
+        match (secrets.time_period_days):
+            case 1:
+                message += "Day"
+            case 7:
+                message += "Week"
+            case 30:
+                message += "Month"
+            case _:
+                message += f"{secrets.time_period_days} Days"
+
+        return message
+
     async def post_to_discord(self) -> None:
         """
         Posts contributor result image to Discord.
         """
-        webhook = DiscordWebhook(url=global_.DISCORD_HOOK)
+
+        webhook = DiscordWebhook(
+            url=secrets.discord_hook,
+            content=f"The top contributor of the {self.contributor_of_the()} is "
+            + f"`{self.login}` with {self.pr_count} merged prs and {self.issue_count} opened issues.",
+        )
         webhook.add_file(file=self.image_bytes, filename="contributor.png")
         webhook.execute()
 
@@ -143,15 +187,21 @@ class Contributor:
         """
         Posts contributor result image to Twitter.
         """
-        auth = tweepy.OAuthHandler(
-            global_.TWITTER["CONSUMER_KEY"], global_.TWITTER["CONSUMER_SECRET"]
+
+        auth = OAuth(
+            secrets.twitter_access_token,
+            secrets.twitter_access_secret,
+            secrets.twitter_key,
+            secrets.twitter_secret,
         )
-        auth.set_access_token(
-            global_.TWITTER["ACCESS_TOKEN"], global_.TWITTER["ACCESS_TOKEN_SECRET"]
-        )
-        api = tweepy.API(auth)
-        api.update_status_with_media(
-            status=f"{self.login} has scored {self.pr_count}!",
-            file=self.image_bytes,
-            filename="contributor.png",
+
+        twit = Twitter(auth=auth)
+        t_upload = Twitter(domain="upload.twitter.com", auth=auth)
+        id_img1 = t_upload.media.upload(media=self.image_bytes)["media_id_string"]
+
+        twit.statuses.update(
+            status=f"The top contributor of the {self.contributor_of_the()} is "
+            + f"{f'@{self.twitter_username}' if self.twitter_username is not None else self.login}"
+            + f" with {self.pr_count} merged prs and {self.issue_count} opened issues.",
+            media_ids=",".join([id_img1]),
         )

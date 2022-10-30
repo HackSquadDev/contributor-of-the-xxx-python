@@ -1,81 +1,92 @@
 # Imports.
 import asyncio
+import logging
 from datetime import datetime
 from typing import Any
 
+import aiocron
 import aiohttp
-
 from models import Contributor, Organization
 
-from . import global_
+from src import secrets
 
 
 class Bot:
     def __init__(self) -> None:
         pass
 
-    async def get_data(self) -> Any:
+    async def get_contributor(self) -> Contributor | None:
         """
-        GET github data by making a simple request to GitHub's REST API.
+        GET top contributor data by making a simple request to GitHub's REST API.
         """
 
         contributors = {}
-        headers = {"Authorization": f"token {global_.GITHUB['TOKEN']}"}
+        headers = {"Authorization": f"token {secrets.github_token}"}
 
         async with aiohttp.ClientSession(headers=headers) as session:
-            org_name = global_.GITHUB["ORG_NAME"]
-            api = f"https://api.github.com/orgs/{org_name}/repos"
+            org_name = secrets.github_org_name
+            org_api = f"https://api.github.com/orgs/{org_name}/repos"
 
-            async with session.get(api) as response:
-                data = await response.json()
-                repos = [repo["name"] for repo in data]
+            try:
+                async with session.get(org_api) as response:
+                    data = await response.json()
+                    repos = [repo["name"] for repo in data]
 
-                organization = Organization(
-                    login=data[0]["owner"]["login"],
-                    avatar_url=data[0]["owner"]["avatar_url"],
-                )
+                    organization = Organization(
+                        login=data[0]["owner"]["login"],
+                        avatar_url=data[0]["owner"]["avatar_url"],
+                    )
+            except Exception as e:
+                logging.error("Unable to fetch data\nError: {}".format(e))
+                return None
 
             for repo in repos:
                 for page in range(1, 100):
-                    api = (
-                        f"https://api.github.com/repos/{org_name}/{repo}/pulls"
-                        + f"?state=closed&per_page=100&page={page}"
-                    )
+                    api = f"https://api.github.com/repos/{org_name}/{repo}/issues" + f"?state=all&per_page=100&page={page}"
 
                     async with session.get(api) as response:
                         data = await response.json()
 
-                        if len(data) == 0:
-                            break
+                    if not data:
+                        break
 
-                        for pull in data:
+                    for item in data:
+                        handle = item["user"]["login"]
+                        if item.get("pull_request"):
+                            pull = item["pull_request"]
                             if pull["merged_at"] is not None:
-                                handle = pull["user"]["login"]
-                                difference = datetime.utcnow() - datetime.fromisoformat(
-                                    pull["merged_at"][0:10]
-                                )
+                                difference = datetime.utcnow() - datetime.fromisoformat(pull["merged_at"][0:10])
 
-                                if difference.days > int(global_.TIME_PERIOD_DAYS):
+                                if difference.days > int(secrets.time_period_days):
                                     break
 
                                 if handle not in contributors:
-                                    api = f"https://api.github.com/users/{handle}"
-                                    async with session.get(api) as response:
+                                    user_api = f"https://api.github.com/users/{handle}"
+                                    async with session.get(user_api) as response:
                                         data = await response.json()
-                                    contributors[handle] = Contributor(
-                                        data, organization=organization
-                                    )
+                                    contributors[handle] = Contributor(data, organization=organization)
 
-                                contributors[handle].pr_count = (
-                                    contributors[handle].pr_count + 1
-                                    if handle in contributors
-                                    else 1
-                                )
+                                contributors[handle].pr_count += 1
+                        else:
+                            difference = datetime.utcnow() - datetime.fromisoformat(item["created_at"][0:10])
 
-        contributors = sorted(
-            contributors.items(), key=lambda x: x[1].pr_count, reverse=True
-        )
-        return contributors[0][1]
+                            if difference.days > int(secrets.time_period_days):
+                                break
+
+                            if handle not in contributors:
+                                user_api = f"https://api.github.com/users/{handle}"
+                                async with session.get(user_api) as response:
+                                    data = await response.json()
+                                contributors[handle] = Contributor(data, organization=organization)
+
+                            contributors[handle].issue_count += 1
+
+        contributors = sorted(contributors.items(), key=lambda x: x[1].pr_count, reverse=True)
+
+        if contributors:
+            return contributors[0][1]
+        else:
+            return None
 
     def get_contributor_before_run(func) -> Any:
         """
@@ -83,31 +94,38 @@ class Bot:
         """
 
         async def wrapper(self):
-            data = await self.get_data()
+            data = await self.get_contributor()
             return await func(self, data)
 
         return wrapper
 
     @get_contributor_before_run
-    async def run_tasks(self, contributor: Contributor) -> None:
+    async def run_once(self, contributor: Contributor) -> None:
         """
         Shows the avatar of the top contributor.
         """
+        if contributor:
+            image = await contributor.generate_image()
+            try:
+                if not secrets.test_mode:
+                    await contributor.post_to_discord()
+                    await contributor.post_to_twitter()
+            except Exception as e:
+                logging.error("Cannot post to Discord or Twitter\nError: {}".format(e))
+            else:
+                image.show()
 
-        await contributor.generate_image()
-        await contributor.post_to_discord()
-        await contributor.post_to_twitter()
+        else:
+            logging.warning("No contributor for the given time period.")
 
-    def run(self) -> None:
-        """
-        Run the required functions in order for the bot.
-        """
+    @staticmethod
+    @aiocron.crontab(f"0 0 */{secrets.time_period_days} * *")
+    async def every() -> None:
+        bot = Bot()
+        await bot.run_once()
 
-        async def every(seconds: float):
-            while True:
-                await self.run_tasks()
-                await asyncio.sleep(seconds)
+    def run(self, *, run_at_start: bool = False) -> None:
+        if run_at_start:
+            asyncio.get_event_loop().run_until_complete(self.run_once())
 
-        loop = asyncio.get_event_loop()
-        loop.create_task(every(seconds=3600 * 24 * int(global_.TIME_PERIOD_DAYS)))
-        loop.run_forever()
+        asyncio.get_event_loop().run_forever()
