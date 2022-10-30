@@ -90,24 +90,9 @@ class Contributor:
 
         draw = ImageDraw.Draw(image)
 
-        def contributor_of_the() -> str:
-            message = "Contributor of the "
-
-            match (secrets.time_period_days):
-                case 1:
-                    message += "Day"
-                case 7:
-                    message += "Week"
-                case 30:
-                    message += "Month"
-                case _:
-                    message += f"{secrets.time_period_days} Days"
-
-            return message
-
         draw.text(
             xy=((image.width / 2), 165),
-            text=contributor_of_the(),
+            text=self.contributor_of_the(),
             fill=(255, 255, 255),
             font=ImageFont.truetype("assets/fonts/JosefinSansT.ttf", 28),
             anchor="mm",
@@ -170,6 +155,21 @@ class Contributor:
 
         return image
 
+    def contributor_of_the(self) -> str:
+        message = "Contributor of the "
+
+        match (secrets.time_period_days):
+            case 1:
+                message += "Day"
+            case 7:
+                message += "Week"
+            case 30:
+                message += "Month"
+            case _:
+                message += f"{secrets.time_period_days} Days"
+
+        return message
+
     async def post_to_discord(self) -> None:
         """
         Posts contributor result image to Discord.
@@ -177,7 +177,7 @@ class Contributor:
 
         webhook = DiscordWebhook(
             url=secrets.discord_hook,
-            content="The top contributor of this month is "
+            content=f"The top contributor of the {self.contributor_of_the()} is "
             + f"`{self.login}` with {self.pr_count} merged prs and {self.issue_count} opened issues.",
         )
         webhook.add_file(file=self.image_bytes, filename="contributor.png")
@@ -200,7 +200,7 @@ class Contributor:
         id_img1 = t_upload.media.upload(media=self.image_bytes)["media_id_string"]
 
         twit.statuses.update(
-            status="The top contributor of this month is "
+            status=f"The top contributor of the {self.contributor_of_the()} is "
             + f"{f'@{self.twitter_username}' if self.twitter_username is not None else self.login}"
             + f" with {self.pr_count} merged prs and {self.issue_count} opened issues.",
             media_ids=",".join([id_img1]),
