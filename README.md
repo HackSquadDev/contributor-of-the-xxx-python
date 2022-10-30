@@ -17,7 +17,11 @@ $ cp .env.example .env
 $ nano .env
 ```
 
+<br>
+
 ### Initialize
+
+You can setup the project with ease in two different ways. They are:
 
 - Docker: (easier, requires [Docker Engine](https://docker.com/) and [Docker Compose](https://docs.docker.com/compose/))
 
@@ -42,6 +46,8 @@ $ pip install -r requirements.txt
 # run the bot
 $ python main.py
 ```
+
+<br>
 
 ## License
 
