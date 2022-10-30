@@ -1,6 +1,7 @@
 # COTO (Contributor of The Organization) Bot
 
 [![Lint](https://github.com/HackSquadDev/contributor-of-the-xxx-python/actions/workflows/linting.yml/badge.svg)](https://github.com/HackSquadDev/contributor-of-the-xxx-python/actions/workflows/linting.yml)
+[![Format](https://github.com/HackSquadDev/contributor-of-the-xxx-python/actions/workflows/formatting.yml/badge.svg)](https://github.com/HackSquadDev/contributor-of-the-xxx-python/actions/workflows/formatting.yml)
 
 ## Setup
 
@@ -42,3 +43,20 @@ $ pip install -r requirements.txt
 $ python main.py
 ```
 
+## License
+
+```
+MIT License
+
+Copyright (c) 2022 HackSquadDev
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+...
+```
+
+Kindly view the [original document](LICENSE) for the full license.
