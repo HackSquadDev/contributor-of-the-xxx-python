@@ -27,14 +27,18 @@ class Bot:
             org_name = secrets.github_org_name
             org_api = f"https://api.github.com/orgs/{org_name}/repos"
 
-            async with session.get(org_api) as response:
-                data = await response.json()
-                repos = [repo["name"] for repo in data]
+            try:
+                async with session.get(org_api) as response:
+                    data = await response.json()
+                    repos = [repo["name"] for repo in data]
 
-                organization = Organization(
-                    login=data[0]["owner"]["login"],
-                    avatar_url=data[0]["owner"]["avatar_url"],
-                )
+                    organization = Organization(
+                        login=data[0]["owner"]["login"],
+                        avatar_url=data[0]["owner"]["avatar_url"],
+                    )
+            except Exception as e:
+                logging.error("Unable to fetch data\nError: {}".format(e))
+                return None
 
             for repo in repos:
                 for page in range(1, 100):
@@ -115,10 +119,12 @@ class Bot:
         """
         if contributor:
             image = await contributor.generate_image()
-
-            if not secrets.test_mode:
-                await contributor.post_to_discord()
-                await contributor.post_to_twitter()
+            try:
+                if not secrets.test_mode:
+                    await contributor.post_to_discord()
+                    await contributor.post_to_twitter()
+            except Exception as e:
+                logging.error("Cannot post to Discord or Twitter\nError: {}".format(e))
             else:
                 image.show()
 
