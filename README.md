@@ -17,8 +17,6 @@ $ cp .env.example .env
 $ nano .env
 ```
 
-<br>
-
 ### Initialize
 
 You can setup the project with ease in two different ways. They are:
