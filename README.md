@@ -52,7 +52,7 @@ $ python main.py
 ```
 
 ### Preview
-https://media.discordapp.net/attachments/1035194002284236900/1036235175958433812/Screenshot_2022-10-29_at_10.25.44_PM.png?width=1164&height=663
+![Preview](./assets/Example.png)
 
 ## Licensed under MIT
 
