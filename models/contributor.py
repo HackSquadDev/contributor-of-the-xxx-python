@@ -27,7 +27,7 @@ class Contributor:
     ) -> None:
         self.login = data["login"]
         self.avatar_url = data["avatar_url"]
-        self.bio = data["bio"]
+        self.bio = data["bio"][:37] + "..." if len(data["bio"]) > 40 else data["bio"]
         self.twitter_username = data["twitter_username"]
         self.pr_count = pr_count
         self.issue_count = issue_count
