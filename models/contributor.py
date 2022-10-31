@@ -190,7 +190,7 @@ class Contributor:
 
         webhook = DiscordWebhook(
             url=secrets.discord_hook,
-            content=f"The top contributor of the {self.contributor_of_the()} is "
+            content=f"The top {self.contributor_of_the().lower()} is "
             + f"`{self.login}` with {self.pr_count} merged prs and {self.issue_count} opened issues.",
         )
         webhook.add_file(file=self.image_bytes, filename="contributor.png")
@@ -213,7 +213,7 @@ class Contributor:
         id_img1 = t_upload.media.upload(media=self.image_bytes)["media_id_string"]
 
         twit.statuses.update(
-            status=f"The top contributor of the {self.contributor_of_the()} is "
+            status=f"The top {self.contributor_of_the().lower()} is "
             + f"{f'@{self.twitter_username}' if self.twitter_username is not None else self.login}"
             + f" with {self.pr_count} merged prs and {self.issue_count} opened issues.",
             media_ids=",".join([id_img1]),
