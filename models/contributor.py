@@ -38,29 +38,15 @@ class Contributor:
         return f"Top contributor of {self.org}: {self.login} | {self.html_url}"
 
     @staticmethod
-    def get_quote() -> str:
+    async def get_quote() -> str:
         """
         Returns a fancy tech quote :P
         """
 
-        quotes = [
-            "Technology is best when it brings people together.",
-            "Talk is cheap, show me the code",
-            "It is only when they go wrong that machines remind you how powerful they are.",
-            "Data! Data Data! I can't make bricks without clay!",
-            "Without data you're just another person with an opinion.",
-            "If the statistics are boring, you've got the wrong numbers.",
-            "Data is a precious thing and will last longer than the systems themselves.",
-            "Errors using inadequate data are much less than those using no data at all.",
-            "It's not a faith in technology. It's faith in people.",
-            "I have not failed. I've just found 10,000 ways that won't work.",
-            "Technology like art is a soaring exercise of the human imagination.",
-            "Innovation is the outcome of a habit, not a random act.",
-            "Any sufficiently advanced technology is indistinguishable from magic.",
-            "It's not that we use technology, we live technology.",
-            "You affect the world by what you browse.",
-        ]
-        return random.choice(quotes)
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://programming-quotes-api.herokuapp.com/quotes/random") as response:
+                data = await response.json()
+                return data["en"]
 
     async def generate_image(self) -> Image:
         """
