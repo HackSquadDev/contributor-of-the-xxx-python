@@ -42,7 +42,7 @@ class Contributor:
         """
         Returns a fancy tech quote :P
         """
-
+        # short quotes about technology
         quotes = [
             "Technology is best when it brings people together.",
             "Talk is cheap, show me the code",
@@ -59,6 +59,21 @@ class Contributor:
             "Any sufficiently advanced technology is indistinguishable from magic.",
             "It's not that we use technology, we live technology.",
             "You affect the world by what you browse.",
+            "What new technology does is create new opportunities to do a job that customers want done.",
+            "Let's go invent tomorrow instead of worrying about what happened yesterday.",
+            "The great growling engine of change - technology.",
+            "Computers are useless. They can only give you answers.",
+            "The human spirit must prevail over technology",
+            "Books don't need batteries.",
+            "The production of too many useful things results in too many useless people",
+            "Technology is a useful servant but a dangerous master.",
+            "Technology like art is a soaring exercise of the human imagination",
+            "Any sufficiently advanced technology is equivalent to magic.",
+            "Any technology distinguishable from magic is insufficiently advanced",
+            "I might love my e-reader, but I’d never pass up the chance to browse real books.",
+            "‘User’ is the word used by the computer professional when they mean ‘idiot.’",
+            "What did people do when they went to the bathroom before smartphones?",
+            "We are stuck with technology when what we really want is just stuff that works.",
         ]
         return random.choice(quotes)
 
