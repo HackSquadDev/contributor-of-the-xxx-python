@@ -71,13 +71,11 @@ class Contributor:
 
         async with aiohttp.ClientSession() as session:
             async with session.get(self.avatar_url) as response:
-                avatar_bytes = BytesIO(await response.read())
-                avatar = Image.open(avatar_bytes).resize((200, 200))
+                avatar = Image.open(BytesIO(await response.read())).resize((200, 200))
                 image.paste(avatar, (500, 270))
 
-            async with session.get(self.organization.avatar_url) as response2:
-                org_avatar_bytes = BytesIO(await response2.read())
-                org_avatar = Image.open(org_avatar_bytes).resize((80, 80))
+            async with session.get(self.organization.avatar_url) as response:
+                org_avatar = Image.open(BytesIO(await response.read())).resize((80, 80))
 
                 bigsize = (org_avatar.size[0] * 3, org_avatar.size[1] * 3)
                 mask = Image.new("L", bigsize, 0)
