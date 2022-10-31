@@ -46,7 +46,7 @@ class Contributor:
         async with aiohttp.ClientSession() as session:
             async with session.get("https://programming-quotes-api.herokuapp.com/quotes/random") as response:
                 data = await response.json()
-                return data["en"]
+                return data['en']
 
     async def generate_image(self) -> Image:
         """
