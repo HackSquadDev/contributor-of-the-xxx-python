@@ -7,6 +7,7 @@ from typing import Any
 import aiocron
 import aiohttp
 from models import Contributor, Organization
+from PIL import Image
 
 from src import secrets
 
@@ -113,7 +114,11 @@ class Bot:
             except Exception as e:
                 logging.error("Cannot post to Discord or Twitter\nError: {}".format(e))
             else:
-                image.show()
+                file_name = "test_image.png"
+                image.save(file_name)
+
+                preview = Image.open(file_name)
+                preview.show()
 
         else:
             logging.warning("No contributor for the given time period.")
