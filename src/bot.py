@@ -6,9 +6,9 @@ from typing import Any
 
 import aiocron
 import aiohttp
-from models import Contributor, Organization
 from PIL import Image
 
+from models import Contributor, Organization
 from src import secrets
 
 
@@ -107,12 +107,12 @@ class Bot:
         """
         if contributor:
             image = await contributor.generate_image()
-            try:
-                if not secrets.test_mode:
+            if not secrets.test_mode:
+                try:
                     await contributor.post_to_discord()
                     await contributor.post_to_twitter()
-            except Exception as e:
-                logging.error("Cannot post to Discord or Twitter\nError: {}".format(e))
+                except Exception as e:
+                    logging.error("Cannot post to Discord or Twitter\nError: {}".format(e))
             else:
                 file_name = "test_image.png"
                 image.save(file_name)
