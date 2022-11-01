@@ -123,7 +123,7 @@ class Contributor:
         if self.bio:
             draw.text(
                 xy=((image.width / 2), 540),
-                text=self.bio[:37] + "..." if len(self.bio) > 40 else self.bio,
+                text=self.bio[:37] + "..." if len(self.bio) > 50 else self.bio,
                 fill=(255, 255, 255),
                 font=ImageFont.truetype("assets/fonts/JosefinSansEL.ttf", 30),
                 anchor="mm",
