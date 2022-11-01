@@ -6,8 +6,9 @@ from typing import Dict
 import aiohttp
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
-from src import secrets
 from twitter import OAuth, Twitter
+
+from src import secrets
 
 from .organization import Organization
 
@@ -27,7 +28,7 @@ class Contributor:
     ) -> None:
         self.login = data["login"]
         self.avatar_url = data["avatar_url"]
-        self.bio = data["bio"] if data["bio"] is not None else data["bio"][:37] + "..." if len(data["bio"]) > 40 else data["bio"]
+        self.bio = data["bio"]
         self.twitter_username = data["twitter_username"]
         self.pr_count = pr_count
         self.issue_count = issue_count
@@ -122,7 +123,7 @@ class Contributor:
         if self.bio:
             draw.text(
                 xy=((image.width / 2), 540),
-                text=self.bio,
+                text=self.bio[:37] + "..." if len(self.bio) > 40 else self.bio,
                 fill=(255, 255, 255),
                 font=ImageFont.truetype("assets/fonts/JosefinSansEL.ttf", 30),
                 anchor="mm",
