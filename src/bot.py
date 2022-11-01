@@ -8,9 +8,8 @@ import aiocron
 import aiohttp
 from PIL import Image
 
+from models import Contributor, Organization
 from src import secrets
-
-from .models import Contributor, Organization
 
 
 class Bot:
