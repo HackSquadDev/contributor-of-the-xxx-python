@@ -8,8 +8,8 @@ import aiocron
 import aiohttp
 from PIL import Image
 
-from models import Contributor, Organization
 from src import secrets
+from src.models import Contributor, Organization
 
 
 class Bot:
@@ -38,7 +38,7 @@ class Bot:
                         avatar_url=data[0]["owner"]["avatar_url"],
                     )
             except Exception as e:
-                logging.error("Unable to fetch data\nError: {}".format(e))
+                logging.error(f"Unable to fetch data\nError: {e}")
                 return None
 
             for repo in repos:
