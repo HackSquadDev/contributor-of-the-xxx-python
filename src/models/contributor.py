@@ -145,13 +145,14 @@ class Contributor:
             anchor="ma",
         )
 
-        draw.text(
-            xy=(1000, 280),
-            text=str(self.issue_count),
-            fill=(183, 183, 183),
-            font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
-            anchor="ma",
-        )
+        if self.issue_count > 0:
+            draw.text(
+                xy=(1000, 280),
+                text=str(self.issue_count),
+                fill=(183, 183, 183),
+                font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
+                anchor="ma",
+            )
 
         draw.text(
             xy=(150, 50),
@@ -180,7 +181,7 @@ class Contributor:
             case 30:
                 message += "Month"
             case _:
-                message += f"{secrets.time_period_days} Days"
+                message += f"last {secrets.time_period_days} Days"
 
         return message
 
@@ -188,11 +189,13 @@ class Contributor:
         """
         Posts contributor result image to Discord.
         """
-
+        caption = f"The top {self.contributor_of_the().lower()} is " + f"`{self.login}` with {self.pr_count} merged prs"
+        if self.issue_count > 0:
+            caption += f" and {self.issue_count} opened issues"
+        caption += "."
         webhook = DiscordWebhook(
             url=secrets.discord_hook,
-            content=f"The top {self.contributor_of_the().lower()} is "
-            + f"`{self.login}` with {self.pr_count} merged prs and {self.issue_count} opened issues.",
+            content=caption,
         )
         webhook.add_file(file=self.image_bytes, filename="contributor.png")
         webhook.execute()
@@ -212,10 +215,16 @@ class Contributor:
         twit = Twitter(auth=auth)
         t_upload = Twitter(domain="upload.twitter.com", auth=auth)
         id_img1 = t_upload.media.upload(media=self.image_bytes)["media_id_string"]
+        status = (
+            f"The top {self.contributor_of_the().lower()} is "
+            + f"{f'@{self.twitter_username}' if self.twitter_username is not None else self.login}"
+            + f" with {self.pr_count} merged prs"
+        )
+        if self.issue_count > 0:
+            status += f" and {self.issue_count} opened issues"
+        status += "."
 
         twit.statuses.update(
-            status=f"The top {self.contributor_of_the().lower()} is "
-            + f"{f'@{self.twitter_username}' if self.twitter_username is not None else self.login}"
-            + f" with {self.pr_count} merged prs and {self.issue_count} opened issues.",
+            status=status,
             media_ids=",".join([id_img1]),
         )
