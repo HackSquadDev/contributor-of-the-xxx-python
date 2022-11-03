@@ -22,6 +22,7 @@ class Bot:
         """
 
         contributors = {}
+        bots = []
         headers = {"Authorization": f"token {secrets.github_token}"}
 
         async with aiohttp.ClientSession(headers=headers) as session:
@@ -61,11 +62,13 @@ class Bot:
                                 if difference.days > int(secrets.time_period_days):
                                     break
 
-                                if handle not in contributors:
+                                if handle not in contributors and handle not in bots:
                                     user_api = f"https://api.github.com/users/{handle}"
                                     async with session.get(user_api) as response:
                                         data = await response.json()
                                     contributors[handle] = Contributor(data, organization=organization)
+                                    if data["type"] == "Bot":
+                                        bots += data["login"]
 
                                 contributors[handle].pr_count += 1
                         else:
@@ -74,11 +77,13 @@ class Bot:
                             if difference.days > int(secrets.time_period_days):
                                 break
 
-                            if handle not in contributors:
+                            if handle not in contributors and handle not in bots:
                                 user_api = f"https://api.github.com/users/{handle}"
                                 async with session.get(user_api) as response:
                                     data = await response.json()
                                 contributors[handle] = Contributor(data, organization=organization)
+                                if data["type"] == "Bot":
+                                    bots += data["login"]
 
                             contributors[handle].issue_count += 1
 
