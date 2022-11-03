@@ -6,9 +6,8 @@ from typing import Dict
 import aiohttp
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
-from twitter import OAuth, Twitter
-
 from src import secrets
+from twitter import OAuth, Twitter
 
 from .organization import Organization
 
@@ -71,8 +70,8 @@ class Contributor:
             "Technology like art is a soaring exercise of the human imagination",
             "Any sufficiently advanced technology is equivalent to magic.",
             "Any technology distinguishable from magic is insufficiently advanced",
-            "I might love my e-reader, but I’d never pass up the chance to browse real books.",
-            "‘User’ is the word used by the computer professional when they mean ‘idiot.’",
+            "I might love my e-reader, but I'd never pass up the chance to browse real books.",
+            "'User' is the word used by the computer professional when they mean 'idiot.'",
             "What did people do when they went to the bathroom before smartphones?",
             "We are stuck with technology when what we really want is just stuff that works.",
         ]
@@ -83,7 +82,7 @@ class Contributor:
         Generates the banner image for the top contributor.
         """
 
-        image = Image.open("assets/background.png")
+        image = Image.open("assets/background.png") if self.issue_count else Image.open("assets/no_issues_background.png")
 
         async with aiohttp.ClientSession() as session:
             async with session.get(self.avatar_url) as response:
@@ -137,22 +136,22 @@ class Contributor:
             anchor="mm",
         )
 
-        draw.text(
-            xy=(200, 280),
-            text=str(self.pr_count),
-            fill=(183, 183, 183),
-            font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
-            anchor="ma",
-        )
-
-        if self.issue_count > 0:
+        if self.issue_count:
             draw.text(
-                xy=(1000, 280),
+                xy=(200, 280),
                 text=str(self.issue_count),
                 fill=(183, 183, 183),
                 font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
                 anchor="ma",
             )
+
+        draw.text(
+            xy=(1000, 280),
+            text=str(self.pr_count),
+            fill=(183, 183, 183),
+            font=ImageFont.truetype("assets/fonts/JosefinSansSB.ttf", 120),
+            anchor="ma",
+        )
 
         draw.text(
             xy=(150, 50),
