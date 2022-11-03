@@ -11,6 +11,8 @@ from PIL import Image
 from src import secrets
 from src.models import Contributor, Organization
 
+logging.basicConfig(level=logging.INFO)
+
 
 class Bot:
     def __init__(self) -> None:
@@ -39,7 +41,7 @@ class Bot:
                         avatar_url=data[0]["owner"]["avatar_url"],
                     )
             except Exception as e:
-                logging.error(f"Unable to fetch data\nError: {e}")
+                logging.error(f"{datetime.now()} -> Unable to fetch data\nError: {e}")
                 return None
 
             for repo in repos:
@@ -117,7 +119,7 @@ class Bot:
                     await contributor.post_to_discord()
                     await contributor.post_to_twitter()
                 except Exception as e:
-                    logging.error("Cannot post to Discord or Twitter\nError: {}".format(e))
+                    logging.error(f"{datetime.now()} -> Cannot post to Discord or Twitter\nError: {e}")
             else:
                 file_name = "test_image.png"
                 image.save(file_name)
@@ -125,8 +127,10 @@ class Bot:
                 preview = Image.open(file_name)
                 preview.show()
 
+            logging.info(f"{datetime.now()} -> Top Contributor: {contributor.login}")
+
         else:
-            logging.warning("No contributor for the given time period.")
+            logging.info(f"{datetime.now()} -> No contributor for the given time period.")
 
     @staticmethod
     @aiocron.crontab(f"0 0 */{secrets.time_period_days} * *")
