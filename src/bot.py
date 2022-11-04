@@ -56,21 +56,26 @@ class Bot:
 
                     for item in data:
                         handle = item["user"]["login"]
+
                         if item.get("pull_request"):
                             pull = item["pull_request"]
+
                             if pull["merged_at"] is not None:
                                 difference = datetime.utcnow() - datetime.fromisoformat(pull["merged_at"][0:10])
 
                                 if difference.days > int(secrets.time_period_days):
                                     break
 
-                                if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles_list:
+                                if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles:
                                     user_api = f"https://api.github.com/users/{handle}"
+
                                     async with session.get(user_api) as response:
                                         data = await response.json()
+
                                     contributors[handle] = Contributor(data, organization=organization)
                                     if data["type"] == "Bot":
                                         bots += data["login"]
+
                                 if handle in contributors:
                                     contributors[handle].pr_count += 1
                         else:
@@ -79,13 +84,16 @@ class Bot:
                             if difference.days > int(secrets.time_period_days):
                                 break
 
-                            if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles_list:
+                            if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles:
                                 user_api = f"https://api.github.com/users/{handle}"
+
                                 async with session.get(user_api) as response:
                                     data = await response.json()
+
                                 contributors[handle] = Contributor(data, organization=organization)
                                 if data["type"] == "Bot":
                                     bots += data["login"]
+
                             if handle in contributors:
                                 contributors[handle].issue_count += 1
 
