@@ -64,30 +64,30 @@ class Bot:
                                 if difference.days > int(secrets.time_period_days):
                                     break
 
-                                if handle not in contributors and handle not in bots:
+                                if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles_list:
                                     user_api = f"https://api.github.com/users/{handle}"
                                     async with session.get(user_api) as response:
                                         data = await response.json()
                                     contributors[handle] = Contributor(data, organization=organization)
                                     if data["type"] == "Bot":
                                         bots += data["login"]
-
-                                contributors[handle].pr_count += 1
+                                if handle in contributors:
+                                    contributors[handle].pr_count += 1
                         else:
                             difference = datetime.utcnow() - datetime.fromisoformat(item["created_at"][0:10])
 
                             if difference.days > int(secrets.time_period_days):
                                 break
 
-                            if handle not in contributors and handle not in bots:
+                            if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles_list:
                                 user_api = f"https://api.github.com/users/{handle}"
                                 async with session.get(user_api) as response:
                                     data = await response.json()
                                 contributors[handle] = Contributor(data, organization=organization)
                                 if data["type"] == "Bot":
                                     bots += data["login"]
-
-                            contributors[handle].issue_count += 1
+                            if handle in contributors:
+                                contributors[handle].issue_count += 1
 
         contributors = sorted(contributors.items(), key=lambda x: x[1].pr_count, reverse=True)
 
