@@ -9,7 +9,7 @@ class Secrets:
         self.test_mode: bool = config("TEST_MODE", cast=bool)
 
         self.github_org_name: str = config("GITHUB_ORG_NAME", cast=str)
-        self.excluded_profiles_list: list = config("EXCLUDE_PROFILES", cast=str).split(",")
+        self.excluded_profiles: list = config("EXCLUDE_PROFILES", cast=str, default=None).split(",")
         self.github_token: str = config("GITHUB_TOKEN", cast=str)
 
         if not self.test_mode:
