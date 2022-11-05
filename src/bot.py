@@ -26,76 +26,67 @@ class Bot:
         contributors = {}
         bots = []
         headers = {"Authorization": f"token {secrets.github_token}"}
+        start_time = datetime.utcnow()
 
         async with aiohttp.ClientSession(headers=headers) as session:
             org_name = secrets.github_org_name
-            org_api = f"https://api.github.com/orgs/{org_name}/repos"
+            org_api = f"https://api.github.com/orgs/{org_name}"
 
             try:
                 async with session.get(org_api) as response:
                     data = await response.json()
-                    repos = [repo["name"] for repo in data]
-
                     organization = Organization(
-                        login=data[0]["owner"]["login"],
-                        avatar_url=data[0]["owner"]["avatar_url"],
+                        login=data["login"],
+                        avatar_url=data["avatar_url"],
                     )
             except Exception as e:
                 logging.error(f"{datetime.now()} -> Unable to fetch data\nError: {e}")
                 return None
 
-            for repo in repos:
-                for page in range(1, 100):
-                    api = f"https://api.github.com/repos/{org_name}/{repo}/issues" + f"?state=all&per_page=100&page={page}"
+            for page in range(1, 100):
+                api = "https://api.github.com/search/issues" + f"?q=org:{org_name}&sort=created&per_page=100&page={page}"
 
-                    async with session.get(api) as response:
-                        data = await response.json()
+                async with session.get(api) as response:
+                    data = await response.json()
 
-                    if not data:
-                        break
+                if not data.get("items"):
+                    break
 
-                    for item in data:
-                        handle = item["user"]["login"]
-
-                        if item.get("pull_request"):
-                            pull = item["pull_request"]
-
-                            if pull["merged_at"] is not None:
-                                difference = datetime.utcnow() - datetime.fromisoformat(pull["merged_at"][0:10])
-
-                                if difference.days > int(secrets.time_period_days):
-                                    break
-
-                                if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles:
-                                    user_api = f"https://api.github.com/users/{handle}"
-
-                                    async with session.get(user_api) as response:
-                                        data = await response.json()
-
-                                    contributors[handle] = Contributor(data, organization=organization)
-                                    if data["type"] == "Bot":
-                                        bots += data["login"]
-
-                                if handle in contributors:
-                                    contributors[handle].pr_count += 1
-                        else:
-                            difference = datetime.utcnow() - datetime.fromisoformat(item["created_at"][0:10])
+                for item in data["items"]:
+                    handle = item["user"]["login"]
+                    if item.get("pull_request"):
+                        pull = item["pull_request"]
+                        if pull["merged_at"] is not None:
+                            difference = start_time - datetime.fromisoformat(pull["merged_at"][0:10])
 
                             if difference.days > int(secrets.time_period_days):
                                 break
 
                             if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles:
                                 user_api = f"https://api.github.com/users/{handle}"
-
                                 async with session.get(user_api) as response:
                                     data = await response.json()
-
                                 contributors[handle] = Contributor(data, organization=organization)
                                 if data["type"] == "Bot":
                                     bots += data["login"]
-
                             if handle in contributors:
-                                contributors[handle].issue_count += 1
+                                contributors[handle].pr_count += 1
+
+                    else:
+                        difference = start_time - datetime.fromisoformat(item["created_at"][0:10])
+
+                        if difference.days > int(secrets.time_period_days):
+                            break
+
+                        if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles:
+                            user_api = f"https://api.github.com/users/{handle}"
+                            async with session.get(user_api) as response:
+                                data = await response.json()
+                            contributors[handle] = Contributor(data, organization=organization)
+                            if data["type"] == "Bot":
+                                bots += data["login"]
+                        if handle in contributors:
+                            contributors[handle].issue_count += 1
 
         contributors = sorted(contributors.items(), key=lambda x: x[1].pr_count, reverse=True)
 
