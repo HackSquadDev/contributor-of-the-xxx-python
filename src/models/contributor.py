@@ -6,8 +6,9 @@ from typing import Dict
 import aiohttp
 from discord_webhook import DiscordWebhook
 from PIL import Image, ImageDraw, ImageFont
-from src import secrets
 from twitter import OAuth, Twitter
+
+from src import secrets
 
 from .organization import Organization
 
@@ -90,7 +91,7 @@ class Contributor:
                 image.paste(avatar, (500, 270))
 
             async with session.get(self.organization.avatar_url) as response:
-                org_avatar = Image.open(BytesIO(await response.read())).resize((80, 80))
+                org_avatar = Image.open(BytesIO(await response.read())).resize(((80, 80) if self.issue_count else (160, 160)))
 
                 bigsize = (org_avatar.size[0] * 3, org_avatar.size[1] * 3)
                 mask = Image.new("L", bigsize, 0)
@@ -99,7 +100,7 @@ class Contributor:
                 mask = mask.resize(org_avatar.size, Image.ANTIALIAS)
                 org_avatar.putalpha(mask)
 
-                image.paste(org_avatar, (60, 28), org_avatar.convert("RGBA"))
+                image.paste(org_avatar, ((60, 28) if self.issue_count else (123, 146)), org_avatar.convert("RGBA"))
 
         draw = ImageDraw.Draw(image)
 
@@ -154,13 +155,13 @@ class Contributor:
         )
 
         draw.text(
-            xy=(150, 50),
+            xy=((150, 50) if self.issue_count else (130, 350)),
             text=f"@{self.organization.login.lower()}",
             fill=(255, 255, 255),
             font=ImageFont.truetype("assets/fonts/JosefinSansT.ttf", 30),
         )
 
-        overlay = Image.open("assets/overlay.png")
+        overlay = Image.open("assets/overlay.png") if self.issue_count else Image.open("assets/no_issues_overlay.png")
         image = Image.alpha_composite(image, overlay)
 
         buffer = BytesIO()

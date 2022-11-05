@@ -44,7 +44,7 @@ class Bot:
 
             # get PRs
             for page in range(1, 100):
-                api = "https://api.github.com/search/issues" + f"?q=org:{org_name} is:pull-request&sort=created&per_page=100&page={page}"
+                api = "https://api.github.com/search/issues" + f"?q=org:{org_name} is:pull-request is:merged&sort=created&per_page=100&page={page}"
 
                 async with session.get(api) as response:
                     data = await response.json()
@@ -61,7 +61,7 @@ class Bot:
                         if difference.days > int(secrets.time_period_days):
                             break
 
-                        if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles_list:
+                        if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles:
                             user_api = f"https://api.github.com/users/{handle}"
                             async with session.get(user_api) as response:
                                 data = await response.json()
@@ -73,7 +73,7 @@ class Bot:
 
             # get Issues
             for page in range(1, 100):
-                api = "https://api.github.com/search/issues" + f"?q=org:{org_name} is:issues&sort=created&per_page=100&page={page}"
+                api = "https://api.github.com/search/issues" + f"?q=org:{org_name} is:issue&sort=created&per_page=100&page={page}"
 
                 async with session.get(api) as response:
                     data = await response.json()
@@ -83,13 +83,12 @@ class Bot:
 
                 for item in data["items"]:
                     handle = item["user"]["login"]
-                    pull = item["pull_request"]
                     difference = datetime.utcnow() - datetime.fromisoformat(item["created_at"][0:10])
 
                     if difference.days > int(secrets.time_period_days):
                         break
 
-                    if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles_list:
+                    if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles:
                         user_api = f"https://api.github.com/users/{handle}"
                         async with session.get(user_api) as response:
                             data = await response.json()
@@ -100,7 +99,6 @@ class Bot:
                         contributors[handle].issue_count += 1
 
         contributors = sorted(contributors.items(), key=lambda x: x[1].pr_count, reverse=True)
-        print(contributors)
 
         if contributors:
             return contributors[0][1]
@@ -113,6 +111,7 @@ class Bot:
         """
 
         async def wrapper(self):
+            print(datetime.now())
             data = await self.get_contributor()
             return await func(self, data)
 
@@ -142,6 +141,7 @@ class Bot:
 
         else:
             logging.info(f"{datetime.now()} -> No contributor for the given time period.")
+        print(datetime.now())
 
     @staticmethod
     @aiocron.crontab(f"0 0 */{secrets.time_period_days} * *")
