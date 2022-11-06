@@ -53,6 +53,7 @@ class Bot:
                                 contributors[handle] = {"pr_count": 0, "issue_count": 0}
                                 if item["user"]["type"] == "Bot":
                                     bots += item["user"]["login"]
+                                    contributors.pop(handle)
                             if handle in contributors:
                                 contributors[handle]["pr_count"] += 1
 
@@ -66,6 +67,7 @@ class Bot:
                             contributors[handle] = {"pr_count": 0, "issue_count": 0}
                             if item["user"]["type"] == "Bot":
                                 bots += item["user"]["login"]
+                                contributors.pop(handle)
                         if handle in contributors:
                             contributors[handle]["issue_count"] += 1
 
