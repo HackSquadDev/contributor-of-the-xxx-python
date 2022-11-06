@@ -12,6 +12,9 @@ from src import secrets
 from src.models import Contributor, Organization
 
 logging.basicConfig(level=logging.INFO)
+headers = {"Authorization": f"token {secrets.github_token}"}
+start_time = datetime.utcnow()
+org_name = secrets.github_org_name
 
 
 class Bot:
@@ -25,24 +28,8 @@ class Bot:
 
         contributors = {}
         bots = []
-        headers = {"Authorization": f"token {secrets.github_token}"}
-        start_time = datetime.utcnow()
 
         async with aiohttp.ClientSession(headers=headers) as session:
-            org_name = secrets.github_org_name
-            org_api = f"https://api.github.com/orgs/{org_name}"
-
-            try:
-                async with session.get(org_api) as response:
-                    data = await response.json()
-                    organization = Organization(
-                        login=data["login"],
-                        avatar_url=data["avatar_url"],
-                    )
-            except Exception as e:
-                logging.error(f"{datetime.now()} -> Unable to fetch data\nError: {e}")
-                return None
-
             for page in range(1, 100):
                 api = "https://api.github.com/search/issues" + f"?q=org:{org_name}&sort=created&per_page=100&page={page}"
 
@@ -63,14 +50,11 @@ class Bot:
                                 break
 
                             if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles:
-                                user_api = f"https://api.github.com/users/{handle}"
-                                async with session.get(user_api) as response:
-                                    data = await response.json()
-                                contributors[handle] = Contributor(data, organization=organization)
-                                if data["type"] == "Bot":
-                                    bots += data["login"]
+                                contributors[handle] = {"pr_count": 0, "issue_count": 0}
+                                if item["user"]["type"] == "Bot":
+                                    bots += item["user"]["login"]
                             if handle in contributors:
-                                contributors[handle].pr_count += 1
+                                contributors[handle]["pr_count"] += 1
 
                     else:
                         difference = start_time - datetime.fromisoformat(item["created_at"][0:10])
@@ -79,19 +63,16 @@ class Bot:
                             break
 
                         if handle not in list(contributors.keys()) + bots + secrets.excluded_profiles:
-                            user_api = f"https://api.github.com/users/{handle}"
-                            async with session.get(user_api) as response:
-                                data = await response.json()
-                            contributors[handle] = Contributor(data, organization=organization)
-                            if data["type"] == "Bot":
-                                bots += data["login"]
+                            contributors[handle] = {"pr_count": 0, "issue_count": 0}
+                            if item["user"]["type"] == "Bot":
+                                bots += item["user"]["login"]
                         if handle in contributors:
-                            contributors[handle].issue_count += 1
+                            contributors[handle]["issue_count"] += 1
 
-        contributors = sorted(contributors.items(), key=lambda x: x[1].pr_count, reverse=True)
+        contributors = sorted(contributors.items(), key=lambda x: x[1]["pr_count"], reverse=True)
 
         if contributors:
-            return contributors[0][1]
+            return contributors[0]
         else:
             return None
 
@@ -107,11 +88,26 @@ class Bot:
         return wrapper
 
     @get_contributor_before_run
-    async def run_once(self, contributor: Contributor) -> None:
+    async def run_once(self, contributor: Any) -> None:
         """
         Shows the avatar of the top contributor.
         """
         if contributor:
+            async with aiohttp.ClientSession(headers=headers) as session:
+                org_api = f"https://api.github.com/orgs/{org_name}"
+                async with session.get(org_api) as response:
+                    data = await response.json()
+                    organization = Organization(
+                        login=data["login"],
+                        avatar_url=data["avatar_url"],
+                    )
+
+                user_api = f"https://api.github.com/users/{contributor[0]}"
+                async with session.get(user_api) as response:
+                    data = await response.json()
+            contributor = Contributor(
+                data=data, organization=organization, pr_count=contributor[1]["pr_count"], issue_count=contributor[1]["issue_count"]
+            )
             image = await contributor.generate_image()
             if not secrets.test_mode:
                 try:
